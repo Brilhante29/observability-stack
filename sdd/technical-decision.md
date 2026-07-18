@@ -2,119 +2,111 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Decision Type
 
-`<stack|api-style|cloud|messaging|database|library|runtime|framework>`
+stack, api-style, cloud, runtime, library
 
 ## Context
 
-Project: `<project-name>`
-Problem: `<problem to solve>`
-Portfolio program: `<program>`
-Public signal: `<GitHub/LinkedIn proficiency signal>`
-Benchmark: `<metric>`
+Project: `observability-stack #25`
+Problem: make failure detection and recovery observable in a local demo.
+Portfolio program: `backend-reliability-platform`
+Public signal: a typed FastAPI backend with Prometheus metrics, Docker wiring and reproducible benchmark.
+Benchmark: `simulated_mttr_minutes`
 
 ## Selected Option
 
-Selected: `<option>`
+Selected: Python 3.12 + FastAPI + prometheus-client + Uvicorn + Prometheus/Grafana Compose.
 
 Reason:
 
-`<Why this option fits the problem, benchmark, and public signal.>`
+The stack is small, common for operational HTTP services, exposes OpenAPI, and gives a direct Prometheus scrape endpoint without a paid dependency. Python also lets the benchmark reuse the application policy with a logical clock.
 
 ## Decision Brain Fields
 
-- Stack profile: `<spring-kotlin-backend|fastapi-backend|go-backend|node-typescript-backend|angular|nextjs|python-ml|terraform>`
-- API style: `<rest-http|graphql|grpc|websocket|sse|cli>`
-- Messaging: `<none|outbox-only|rabbitmq|kafka|redis-streams|nats>`
-- Cloud mode: `<none|kumo-local-first|adapter-fake|real-cloud-required>`
-- Database/runtime: `<selection>`
-- Library policy: `<selection>`
+- Stack profile: `fastapi-backend`
+- API style: `rest-http`
+- Messaging: `none`
+- Cloud mode: `none`; this project has no cloud capability.
+- Database/runtime: in-memory store, Python 3.12 slim, Uvicorn.
+- Library policy: pin direct runtime dependencies; use standard library dataclasses, protocols and unittest for core behavior.
 
 ## Engineering Principles
 
 Coupling boundary:
 
-`<Domain/use cases must not depend on framework, DB, broker, cloud SDK, transport, or UI.>`
+`domain.py` and `application.py` do not depend on framework, DB, broker, cloud SDK, transport or UI.
 
 SOLID application:
 
-- SRP: `<how responsibilities are split>`
-- OCP: `<how behavior extends without rewriting stable policy>`
-- LSP: `<how adapters/fakes/reals stay substitutable>`
-- ISP: `<small ports/interfaces used>`
-- DIP: `<high-level policy depends on abstractions>`
+- SRP: domain transitions, application use cases, in-memory storage, metrics and HTTP each have separate modules.
+- OCP: storage and clock behavior extend through ports rather than modifying incident policy.
+- LSP: `InMemoryIncidentStore` and the test store satisfy the same `IncidentStore` contract and preserve failure semantics.
+- ISP: `IncidentStore` exposes only `get` and `put`; `Clock` is a callable port.
+- DIP: `ObservationService` depends on `IncidentStore` and `Clock`, with composition at the API or benchmark adapter.
 
 Simplicity:
 
-- KISS: `<simplest design that proves the claim>`
-- YAGNI: `<future abstraction intentionally not added>`
-- DRY: `<duplicated business knowledge removed without premature abstraction>`
+- KISS: one process and one controlled failure are enough to show the signal path.
+- YAGNI: no database, broker, cloud emulator, tracing collector or frontend was added.
+- DRY: incident timing and recovery are implemented once and reused by API and benchmark.
 
 Testability evidence:
 
-- `<use case test without transport/infrastructure>`
-- `<adapter or contract test>`
+- `tests/test_domain.py` runs use cases without FastAPI or Prometheus.
+- `tests/test_api.py` verifies the HTTP and metrics contract.
+- `tests/test_benchmark.py` locks the deterministic evidence number and schema fields.
+
 ## Rejected Options
 
 | Option | Why rejected |
 |---|---|
-| `<option>` | `<reason>` |
-| `<option>` | `<reason>` |
+| Go + OpenTelemetry | A stronger production stack, but unnecessary complexity for this small Python-first portfolio signal. |
+| SQLite/Postgres | State persistence is outside the local proof and would add migration/runtime cost. |
+| Kumo/AWS | There is no cloud-backed capability in the product surface. |
 
 ## API Contract
 
-Contract artifact:
+Contract artifact: FastAPI-generated OpenAPI at `/openapi.json` and `/docs`.
 
-`<OpenAPI|GraphQL schema|protobuf|event contract|CLI output schema|none>`
+Endpoints:
 
-GraphQL controls, when applicable:
-
-- Query complexity/depth limit: `<yes|no|not applicable>`
-- N+1 prevention: `<DataLoader/batching plan|not applicable>`
-- Field-level auth rule: `<yes|no|not applicable>`
+- `GET /healthz` and `GET /readyz` for runtime checks.
+- `GET /api/v1/checkout` for the observable workload.
+- `POST /api/v1/failure` to open/recover the controlled incident.
+- `GET /api/v1/status` to represent the detection probe.
+- `GET /metrics` for Prometheus exposition.
 
 ## Cloud Local-First
 
-Local provider:
+Local provider: none; no cloud capability is required.
 
-`<kumo|none|adapter fake>`
+Real provider target: none.
 
-Real provider target:
+Config switch: `CLOUD_PROVIDER=none` is documented as the intentional default; a future provider must be introduced behind an adapter.
 
-`<aws|none|other>`
-
-Config switch:
-
-```txt
-CLOUD_PROVIDER=<kumo|aws|none>
-CLOUD_ENDPOINT=http://localhost:4566
-```
-
-Unsupported local behaviors:
-
-- `<behavior or none>`
+Unsupported behaviors: no claims of cloud parity or production durability.
 
 ## Benchmark Impact
 
-Expected impact:
-
-- `<metric/result this decision should improve or clarify>`
+Expected impact: expose a stable, reviewable `simulated_mttr_minutes` result with detection and recovery components.
 
 Validation command:
 
 ```powershell
-<command>
+$env:PYTHONPATH = "src"
+python -m unittest discover -s tests -v
+python -m observability_stack.benchmark --output benchmarks/results/observability-stack-v1.json
 ```
 
 ## Operational Cost
 
-- Docker services added: `<none|kumo|postgres|redis|rabbitmq|redpanda|...>`
-- Local demo complexity: `<low|medium|high>`
-- Failure case required: `<yes|no>`
+- Docker services added: Prometheus and Grafana only.
+- Local demo complexity: low.
+- Failure case required: yes, controlled and reversible.
 
 ## Follow-up
 
-- `<what must be revisited if benchmark fails>`
+Revisit storage and clock ports only if the project evolves from an educational local proof into a persistent service or a real incident measurement harness.

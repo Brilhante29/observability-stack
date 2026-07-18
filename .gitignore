@@ -3,6 +3,7 @@ __pycache__/
 .ruff_cache/
 .venv/
 benchmarks/results/*.json
+!benchmarks/results/observability-stack-v1.json
 dist/
 target/
 build/

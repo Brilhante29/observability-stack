@@ -2,40 +2,46 @@
 
 ## Hypothesis
 
-observabilidade ponta a ponta, measured by simulated_mttr_minutes.
+The service can demonstrate an observable failure lifecycle with a deterministic simulated MTTR of `1.2 minutes`.
 
 ## Command
 
-`ash
-pending
-`
+```powershell
+$env:PYTHONPATH = "src"
+python -m observability_stack.benchmark --output benchmarks/results/observability-stack-v1.json
+```
 
 ## Environment
 
-- OS: pending
-- CPU: pending
-- RAM: pending
-- GPU: pending
-- Docker version: pending
-- Date: pending
+- Runtime: Python 3.12 or the `observability-stack:local` image.
+- Docker services: not required for the logical-clock result; optional for the API/dashboard path.
+- Date: recorded in the JSON result.
+- Host scheduling: excluded from the metric by design.
 
 ## Inputs
 
-- fixture: pending
-- dataset size: pending
-- repetitions: pending
-- warmup: pending
+- Fixture: one controlled `dependency_timeout` incident.
+- Dataset size: one incident per repetition.
+- Repetitions: 3.
+- Warmup: none; all times are logical.
+- Seed: 42, recorded for fixture identity.
+
+## Method
+
+Open at logical `t=0s`, advance to `t=24s` and call `detect_failure`, advance to `t=72s` and call `recover_failure`. The primary metric is recovery time from open divided by 60. Repeating the same fixture demonstrates that the harness is deterministic.
 
 ## Metrics
 
 | Metric | Unit | Source | Why it matters |
 |---|---:|---|---|
-| simulated_mttr_minutes | pending | benchmark script | proves the repo claim |
+| simulated_mttr_minutes | minutes | benchmark harness | primary portfolio claim |
+| detection_seconds | seconds | incident state | shows time to detect |
+| recovery_seconds | seconds | incident state | explains the primary result |
 
 ## Result schema
 
-Output must be JSON and include project, metric, alue, unit, 	imestamp, environment, and command.
+The versioned file `benchmarks/results/observability-stack-v1.json` includes project, schema version, metric, value, unit, timestamp, command, method, image, fixture, environment, samples and summary metrics. The expected value is `1.2` minutes and lower is better.
 
 ## Post angle
 
-#25 observability-stack: simulated_mttr_minutes as a reproducible portfolio benchmark.
+#25 observability-stack: a local FastAPI failure scenario whose Prometheus signals and logical-clock benchmark make detection and recovery reviewable without cloud credentials.
