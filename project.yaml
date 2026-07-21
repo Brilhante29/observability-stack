@@ -5,7 +5,7 @@ program:
   narrative_fit: "Demonstra uma API operavel com falha controlada, sinais Prometheus e evidencia reproduzivel de deteccao e recuperacao."
   shared_assets:
     - "Contrato de benchmark JSON do portfolio"
-status: published
+status: implemented
 claim: observabilidade ponta a ponta
 stack:
   - python-3.12
