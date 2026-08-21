@@ -117,6 +117,8 @@ def main() -> int:
             check=False,
         )
     duration = time.perf_counter() - started
+    if not v1_path.is_file():
+        raise SystemExit("evidence Compose completed without producing the V1 result")
     result: dict[str, Any] = json.loads(v1_path.read_text(encoding="utf-8"))
     recovery = [float(value) for value in result["samples"]]
     detection = [

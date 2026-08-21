@@ -6,7 +6,7 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yml"]
     volumes:
       - ./config/otel-collector-evidence.yml:/etc/otelcol-contrib/config.yml:ro
-      - signal-evidence:/evidence
+      - ./benchmarks/runtime:/evidence
 
   app:
     build: .
@@ -34,11 +34,8 @@ services:
       - --output
       - ${BENCHMARK_OUTPUT:-/output/observability-stack-v1.json}
     volumes:
-      - signal-evidence:/evidence:ro
+      - ./benchmarks/runtime:/evidence:ro
       - ./benchmarks/results:/output
     depends_on:
       app:
         condition: service_healthy
-
-volumes:
-  signal-evidence:
