@@ -103,7 +103,7 @@ design_system:
     - references_table
   diagram_required: true
 reuse:
-  kit_version: local
+  kit_version: portfolio-reuse-kit@845560aa0f0704e8e8c6f6c4f98ba50d083b12a5
   uses:
     - catalog
     - programs
@@ -119,6 +119,8 @@ reuse:
     - harness
     - templates
     - skills
+    - observability-evidence-v1
+    - observability-evidence-harness
 benchmark:
   primary_metric: incident_recovery_seconds
   unit: seconds

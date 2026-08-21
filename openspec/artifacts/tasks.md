@@ -7,4 +7,4 @@
 - [x] Add fail-closed benchmark validator, tests, coverage and reusable CI.
 - [x] Align README, SDD, OpenSpec and portfolio macro.
 - [x] Execute evidence Compose and version the measured V1 result.
-- [ ] Publish exact head, verify GitHub CI and promote the kit delta.
+- [x] Publish exact head, verify GitHub CI and promote the kit delta.

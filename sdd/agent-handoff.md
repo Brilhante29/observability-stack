@@ -30,8 +30,8 @@ Project: `25 - observability-stack`
   configuration follows the monolithic migration contract.
 - Evidence and output use named volumes initialized with UID `10001`; CI copies
   the result from the stopped benchmark container before teardown.
-- Pending: publish this exact head, verify GitHub CI and promote the reusable
-  observability contract and skill into `portfolio-reuse-kit`.
+- Reuse promotion passed in `portfolio-reuse-kit` commit `845560a` and CI run
+  `32446626119`. The central publication record owns the final metadata-head CI.
 
 ## Next exact commands
 
@@ -42,5 +42,5 @@ git push origin HEAD:main
 gh run list --repo Brilhante29/observability-stack --commit <sha>
 ```
 
-After exact-head CI passes, complete the final OpenSpec task and promote the
-reusable observability contract/skill into `portfolio-reuse-kit`.
+No project implementation gate remains. The next portfolio repository is #27
+`terraform-aws-baseline`.
