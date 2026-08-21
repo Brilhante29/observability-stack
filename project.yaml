@@ -122,7 +122,7 @@ reuse:
 benchmark:
   primary_metric: incident_recovery_seconds
   unit: seconds
-  command: "docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark"
+  command: "docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark; docker compose -f docker-compose.evidence.yml cp benchmark:/output/observability-stack-v1.json benchmarks/results/observability-stack-v1.json"
   result_path: benchmarks/results/observability-stack-v1.json
   publication_result_path: benchmarks/publication/observability-stack-v2.json
 release:

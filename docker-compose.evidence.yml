@@ -6,14 +6,19 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yml"]
     volumes:
       - ./config/otel-collector-evidence.yml:/etc/otelcol-contrib/config.yml:ro
-      - ./benchmarks/runtime:/evidence
+      - evidence-data:/evidence
+    depends_on:
+      app:
+        condition: service_started
 
   app:
     build: .
     image: observability-stack:local
     environment:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
-    depends_on: [otel-collector]
+    volumes:
+      - evidence-data:/evidence
+      - benchmark-data:/output
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=1)"]
       interval: 2s
@@ -34,8 +39,14 @@ services:
       - --output
       - ${BENCHMARK_OUTPUT:-/output/observability-stack-v1.json}
     volumes:
-      - ./benchmarks/runtime:/evidence:ro
-      - ./benchmarks/results:/output
+      - evidence-data:/evidence:ro
+      - benchmark-data:/output
     depends_on:
       app:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
+
+volumes:
+  benchmark-data:
+  evidence-data:

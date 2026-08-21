@@ -12,12 +12,14 @@ O harness executa `200 -> 503 -> 200`, repete tres vezes e falha se um
 
 ```powershell
 docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark
+docker compose -f docker-compose.evidence.yml cp benchmark:/output/observability-stack-v1.json benchmarks/results/observability-stack-v1.json
 python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
 docker compose -f docker-compose.evidence.yml down --volumes
 ```
 
-Esse caminho sobe somente API + OpenTelemetry Collector + benchmark. O resultado
-fica em `benchmarks/results/observability-stack-v1.json`.
+Esse caminho sobe somente API + OpenTelemetry Collector + benchmark. Volumes
+nomeados preservam UID `10001` em Windows e Linux; o segundo comando copia o
+resultado para `benchmarks/results/observability-stack-v1.json`.
 
 ## Explore a stack
 

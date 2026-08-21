@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir --disable-pip-version-check --requirement require
     && adduser --system --uid 10001 --gid 10001 --home /nonexistent --no-create-home app
 
 COPY src ./src
-RUN mkdir --parents /output && chown --recursive 10001:10001 /output
+RUN mkdir --parents /evidence /output \
+    && chown --recursive 10001:10001 /evidence /output
 
 USER 10001:10001
 

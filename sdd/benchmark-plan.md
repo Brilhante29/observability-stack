@@ -9,6 +9,7 @@ log evidence while preserving the real HTTP failure lifecycle.
 
 ```powershell
 docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark
+docker compose -f docker-compose.evidence.yml cp benchmark:/output/observability-stack-v1.json benchmarks/results/observability-stack-v1.json
 python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
 ```
 

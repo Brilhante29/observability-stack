@@ -28,6 +28,8 @@ Project: `25 - observability-stack`
   and all three lifecycle events retrievable from Loki.
 - Tempo 3.0 removed legacy `ingester` and `compactor` blocks; the committed
   configuration follows the monolithic migration contract.
+- Evidence and output use named volumes initialized with UID `10001`; CI copies
+  the result from the stopped benchmark container before teardown.
 - Pending: publish this exact head, verify GitHub CI and promote the reusable
   observability contract and skill into `portfolio-reuse-kit`.
 

@@ -110,6 +110,15 @@ def main() -> int:
             cwd=root,
             check=True,
         )
+        subprocess.run(
+            compose_command(
+                "cp",
+                "benchmark:/output/observability-stack-v1.json",
+                str(v1_path),
+            ),
+            cwd=root,
+            check=True,
+        )
     finally:
         subprocess.run(
             compose_command("down", "--volumes", "--remove-orphans"),

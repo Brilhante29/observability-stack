@@ -10,6 +10,7 @@
 | Strict typing | mypy 2.3.1 in Python 3.12 container | passed: 11 files |
 | Whitespace | `git diff --check` | passed |
 | Correlated evidence runtime | evidence Compose | passed: 3/3 runs, all signals |
+| Cross-platform evidence permissions | named volumes owned by UID `10001` | passed locally; CI rerun pending |
 | Versioned V1/V2 benchmark | contract and publication validators | passed |
 | Full exploration runtime | app, Prometheus, Tempo 3, Loki and Grafana | passed |
 | Backend navigation | Prometheus target, Tempo trace, Loki events, Grafana provisioning | passed |

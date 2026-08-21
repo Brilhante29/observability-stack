@@ -19,12 +19,6 @@ exporters:
     endpoint: http://loki:3100/otlp
     tls:
       insecure: true
-  file/traces:
-    path: /evidence/traces.json
-    flush_interval: 100ms
-  file/logs:
-    path: /evidence/logs.json
-    flush_interval: 100ms
 
 extensions:
   health_check:
@@ -36,8 +30,8 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp_http/tempo, file/traces]
+      exporters: [otlp_http/tempo]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp_http/loki, file/logs]
+      exporters: [otlp_http/loki]
