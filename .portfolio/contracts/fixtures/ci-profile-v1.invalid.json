@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "profile_id": "unsafe-python",
+  "workflow": {
+    "repository": "Brilhante29/ci-cd-templates",
+    "path": ".github/workflows/reusable-python.yml",
+    "source_commit": "main",
+    "trigger": "push",
+    "runner": "ubuntu-latest",
+    "timeout_minutes": 0
+  },
+  "runtime": {
+    "ecosystem": "python",
+    "version": "latest"
+  },
+  "commands": ["${{ inputs.command }}"],
+  "supply_chain": {
+    "actions_pinned_to_full_sha": false,
+    "checkout_persist_credentials": true,
+    "permissions": "write-all",
+    "lockfile_required": false,
+    "arbitrary_command_inputs": true
+  },
+  "verification": {
+    "fixture_path": "",
+    "static_findings": 1,
+    "exact_head_ci_run_url": "pending",
+    "conclusion": "unknown"
+  }
+}

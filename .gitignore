@@ -1,9 +1,14 @@
 __pycache__/
+.coverage
 .pytest_cache/
 .ruff_cache/
 .venv/
+.uv-cache/
+.uv-python/
 benchmarks/results/*.json
 !benchmarks/results/observability-stack-v1.json
+benchmarks/publication/*.json
+!benchmarks/publication/observability-stack-v2.json
 dist/
 target/
 build/

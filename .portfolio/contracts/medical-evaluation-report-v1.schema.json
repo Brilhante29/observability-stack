@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portfolio-reuse-kit.local/contracts/medical-evaluation-report-v1.schema.json",
+  "title": "Medical evaluation report v1",
+  "description": "Leakage-safe, non-clinical evaluation evidence for patient- or study-grouped medical ML workloads.",
+  "type": "object",
+  "required": [
+    "schema_version", "project", "metric", "value", "unit", "timestamp", "command",
+    "repeat", "measured_iterations", "samples", "metrics", "dataset", "split", "model",
+    "environment", "proof", "failures"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "project": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "metric": { "enum": ["segmentation_dice", "roc_auc", "pr_auc", "macro_f1"] },
+    "value": { "type": "number", "minimum": 0, "maximum": 1 },
+    "unit": { "const": "ratio" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "command": { "type": "string", "minLength": 1 },
+    "repeat": { "type": "integer", "minimum": 1 },
+    "measured_iterations": { "type": "integer", "minimum": 1 },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number", "minimum": 0, "maximum": 1 }
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "accuracy", "sensitivity", "specificity", "true_negative", "false_positive",
+        "false_negative", "true_positive", "latency_p50_ms", "latency_p95_ms"
+      ],
+      "properties": {
+        "accuracy": { "$ref": "#/$defs/ratio" },
+        "sensitivity": { "$ref": "#/$defs/ratio" },
+        "specificity": { "$ref": "#/$defs/ratio" },
+        "segmentation_dice": { "$ref": "#/$defs/ratio" },
+        "iou": { "$ref": "#/$defs/ratio" },
+        "roc_auc": { "$ref": "#/$defs/ratio" },
+        "pr_auc": { "$ref": "#/$defs/ratio" },
+        "true_negative": { "$ref": "#/$defs/count" },
+        "false_positive": { "$ref": "#/$defs/count" },
+        "false_negative": { "$ref": "#/$defs/count" },
+        "true_positive": { "$ref": "#/$defs/count" },
+        "latency_p50_ms": { "type": "number", "minimum": 0 },
+        "latency_p95_ms": { "type": "number", "minimum": 0 }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "required": ["kind", "clinical_use", "patient_count", "manifest_sha256"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "clinical_use": { "const": false },
+        "patient_count": { "type": "integer", "minimum": 1 },
+        "manifest_sha256": { "$ref": "#/$defs/digest" },
+        "generated_dataset_sha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "split": {
+      "type": "object",
+      "required": [
+        "unit", "train_patient_ids", "validation_patient_ids", "test_patient_ids",
+        "overlap_count", "test_used_for_selection"
+      ],
+      "properties": {
+        "unit": { "enum": ["patient", "encounter", "study"] },
+        "train_patient_ids": { "$ref": "#/$defs/identity_set" },
+        "validation_patient_ids": { "$ref": "#/$defs/identity_set" },
+        "test_patient_ids": { "$ref": "#/$defs/identity_set" },
+        "overlap_count": { "const": 0 },
+        "test_used_for_selection": { "const": false }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["name", "artifact_sha256"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "artifact_sha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "environment": { "type": "object" },
+    "proof": {
+      "type": "object",
+      "required": ["scope", "limitations", "benchmark_signature"],
+      "properties": {
+        "scope": { "type": "string", "minLength": 1 },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "benchmark_signature": { "type": "object", "minProperties": 1 }
+      }
+    },
+    "failures": { "const": 0 }
+  },
+  "$defs": {
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+    "count": { "type": "integer", "minimum": 0 },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "identity_set": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

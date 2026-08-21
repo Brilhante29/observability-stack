@@ -3,6 +3,8 @@
 .pytest_cache
 .ruff_cache
 .venv
+.uv-cache
+.uv-python
 __pycache__
 benchmarks/results/*.json
 tests

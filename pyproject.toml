@@ -1,17 +1,28 @@
 [build-system]
-requires = ["setuptools>=75"]
+requires = ["setuptools==82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "observability-stack"
-version = "1.0.0"
-description = "Local-first observability demo with a controlled incident"
-requires-python = ">=3.10"
+version = "2.0.0"
+description = "Local-first correlated metrics, traces and logs for a controlled incident"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-  "fastapi==0.115.6",
+  "fastapi==0.141.1",
   "httpx==0.28.1",
-  "prometheus-client==0.21.1",
-  "uvicorn[standard]==0.34.0",
+  "opentelemetry-api==1.44.0",
+  "opentelemetry-exporter-otlp-proto-http==1.44.0",
+  "opentelemetry-sdk==1.44.0",
+  "prometheus-client==0.26.0",
+  "uvicorn==0.51.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "coverage==7.15.4",
+  "jsonschema==4.26.0",
+  "mypy==2.3.1",
+  "ruff==0.16.3",
 ]
 
 [tool.pytest.ini_options]
@@ -20,7 +31,27 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["opentelemetry.*", "prometheus_client.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true
+source = ["observability_stack"]
+omit = [
+  "*/cli.py",
+  "*/infrastructure/telemetry.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true

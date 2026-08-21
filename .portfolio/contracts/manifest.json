@@ -1,5 +1,9 @@
 {
   "assets": {
+    "backend-reliability-platform.yaml": {
+      "bytes": 2948,
+      "sha256": "sha256:67cd63bb67a12e1fb6e661add1ce1c862138da92298f743cf42fbdc6fd36272d"
+    },
     "benchmark-result-v2.schema.json": {
       "bytes": 3741,
       "sha256": "sha256:821a16388913afb19fe70e37256138528126ed6fa14ef06f74191f5608e86c7a"
@@ -7,6 +11,14 @@
     "benchmark-result.schema.json": {
       "bytes": 746,
       "sha256": "sha256:7df83b5774b363ff6b23a902595c50a5d34a89e66866d898a9dac43fb807a9de"
+    },
+    "ci-profile-v1.schema.json": {
+      "bytes": 3033,
+      "sha256": "sha256:4356148c50b0c8500a2ecd87fd409cde0982e45df21057626ea5d1b416dbc94f"
+    },
+    "commerce-event-v1.schema.json": {
+      "bytes": 1006,
+      "sha256": "sha256:fdb16ccca3e0bb63d9e0ea2ffed729f2022022d6a4460a7157302bb2a279ace8"
     },
     "execution-event.schema.json": {
       "bytes": 1988,
@@ -19,6 +31,26 @@
     "fixtures/benchmark-result-v2.valid.json": {
       "bytes": 1749,
       "sha256": "sha256:0074aeacec5abbc6d5938d6ae330160865d5d866237df0ae76d0425b27e1da2e"
+    },
+    "fixtures/ci-profile-v1.invalid.json": {
+      "bytes": 754,
+      "sha256": "sha256:c542023cd5776185aeefb11a3b90d8845656fbf401cbbc5305cfca12195f78ea"
+    },
+    "fixtures/ci-profile-v1.valid.json": {
+      "bytes": 988,
+      "sha256": "sha256:f6e4b1d96eb91dcff31cb9fb702acf17878079708b560356a99959915142330a"
+    },
+    "fixtures/medical-evaluation-report-v1.invalid.json": {
+      "bytes": 1216,
+      "sha256": "sha256:1ded277145982ab2bace8958fe9fc2351f1eff8c6cc1699d055043a15647af0b"
+    },
+    "fixtures/medical-evaluation-report-v1.valid.json": {
+      "bytes": 1583,
+      "sha256": "sha256:0665c207f1de86fa8d1ad89d041638fe9e5a3be9424977ba61b5bcffea31c1be"
+    },
+    "fixtures/portfolio-audit.valid.json": {
+      "bytes": 2017,
+      "sha256": "sha256:cb123086c3b2d52b74a096796ab34f53ee12ea198582da00e12edb21858e3190"
     },
     "fixtures/project.invalid.json": {
       "bytes": 11193,
@@ -60,9 +92,17 @@
       "bytes": 11193,
       "sha256": "sha256:9a40ded483840249752f97e81d8c9b78466f72c0e46940aa63a143530188a85e"
     },
+    "medical-evaluation-report-v1.schema.json": {
+      "bytes": 4321,
+      "sha256": "sha256:9a8489f0732b396239d1e53e854a68f6eb3873c25d7a3c1d08d8401f5faf08d1"
+    },
+    "mlops-data-platform.yaml": {
+      "bytes": 3476,
+      "sha256": "sha256:f81ee6e324cbd7b157041a830714de20cf646f71aa6fecaa68011485c735cd73"
+    },
     "monitoring-batch.schema.json": {
-      "bytes": 3153,
-      "sha256": "sha256:1684fb18436414e8e2dbf7e0785bae56ea49f5eb18c28d4cad72947f7df9aef4"
+      "bytes": 3643,
+      "sha256": "sha256:57d164746035d9bc70c30643070840b982c0098f1fed6f4d97c6f17877ab09e7"
     },
     "portfolio-evidence.graphql": {
       "bytes": 1937,
@@ -72,16 +112,28 @@
       "bytes": 6048,
       "sha256": "sha256:cc92dab0c92e95e7ce19feb396706f3d9456a611bbf0704d11c4d4ea20a3583a"
     },
+    "prediction-artifact.schema.json": {
+      "bytes": 1390,
+      "sha256": "sha256:113a6bd9783e9a9bbcd66812e1a3c76972fd29d9dc5688dad1277874668deaae"
+    },
+    "producer-lock.schema.json": {
+      "bytes": 827,
+      "sha256": "sha256:409d0e63cf46963deea9f6d09295923093d40dab43dceb1cf51dfe9af64a7f2e"
+    },
     "project.schema.json": {
-      "bytes": 25195,
-      "sha256": "sha256:fd05d067cb1b98119c8d2f1e7b1c5565632710850409cd3ffd94d675288eac12"
+      "bytes": 25274,
+      "sha256": "sha256:c2eeda74d2fe0f34e35f8b0458355c02b57fab53a2c44f511a8d6a3678a6cfc8"
     },
     "publication-evidence.schema.json": {
       "bytes": 983,
       "sha256": "sha256:4a69fe3b65b66dde595216d1014e210545a62db3c4d1bcdcf6d2dd1fe42373a3"
+    },
+    "validated-batch-manifest-v1.schema.json": {
+      "bytes": 2458,
+      "sha256": "sha256:21e591d26eab411000b3dca54ea4349c860aafb3e320db50ecb1cadeb0e2cb52"
     }
   },
   "contract_set": "portfolio-interoperability",
-  "contract_set_version": "1.2.0",
+  "contract_set_version": "1.6.0",
   "schema_version": 1
 }

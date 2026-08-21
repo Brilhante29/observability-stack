@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "project": "medical-segmentation-example",
+  "metric": "segmentation_dice",
+  "value": 0.91,
+  "unit": "ratio",
+  "timestamp": "2026-08-17T00:00:00Z",
+  "command": "docker run --rm --network none medical-segmentation-example",
+  "repeat": 3,
+  "measured_iterations": 24,
+  "samples": [0.90, 0.91, 0.92],
+  "metrics": {
+    "accuracy": 0.98,
+    "sensitivity": 0.90,
+    "specificity": 0.99,
+    "segmentation_dice": 0.91,
+    "iou": 0.84,
+    "true_negative": 990,
+    "false_positive": 10,
+    "false_negative": 20,
+    "true_positive": 180,
+    "latency_p50_ms": 2.0,
+    "latency_p95_ms": 2.5
+  },
+  "dataset": {
+    "kind": "deterministic-synthetic-fixture",
+    "clinical_use": false,
+    "patient_count": 12,
+    "manifest_sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "generated_dataset_sha256": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "split": {
+    "unit": "patient",
+    "train_patient_ids": ["p01", "p02"],
+    "validation_patient_ids": ["p03"],
+    "test_patient_ids": ["p04"],
+    "overlap_count": 0,
+    "test_used_for_selection": false
+  },
+  "model": {
+    "name": "reference-segmenter",
+    "artifact_sha256": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "environment": { "runtime": "pinned-container" },
+  "proof": {
+    "scope": "non-clinical methodology proof",
+    "limitations": ["Synthetic evidence does not prove clinical performance."],
+    "benchmark_signature": { "fixture_seed": 2023 }
+  },
+  "failures": 0
+}

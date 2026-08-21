@@ -1,118 +1,123 @@
 # #25 observability-stack
 
-**Prova:** observabilidade ponta a ponta em uma API local com falha controlada.
+**Prova:** um incidente HTTP real e encontrado pelo mesmo `incident_id` em metricas, traces e logs.
 
-**Benchmark reproduzivel:** `simulated_mttr_minutes = 1.2 minutes` (deteccao em 24 s, recuperacao em 72 s).
+**Benchmark reproduzivel:** `3/3` sinais obrigatorios por execucao, com
+`signal_correlation_rate = 1.0`; a latencia primaria e
+`incident_recovery_seconds` e vem do relogio monotonic da API.
 
-O numero e uma simulacao deterministica de MTTR: o relogio logico abre o incidente em `t=0`, detecta em `t=24 s` e recupera em `t=72 s`. Ele demonstra o fluxo e o contrato da evidencia; nao e uma promessa de MTTR de producao.
+O harness executa `200 -> 503 -> 200`, repete tres vezes e falha se um
+`incident_id` ou qualquer trace de ciclo de vida desaparecer de um sinal.
 
-## Inicio rapido
+## Execute a prova
 
-### Docker, somente a API
+```powershell
+docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark
+python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
+docker compose -f docker-compose.evidence.yml down --volumes
+```
+
+Esse caminho sobe somente API + OpenTelemetry Collector + benchmark. O resultado
+fica em `benchmarks/results/observability-stack-v1.json`.
+
+## Explore a stack
+
+API isolada com um `docker run`:
 
 ```powershell
 docker build --tag observability-stack:local .
 docker run --rm --publish 8000:8000 observability-stack:local
 ```
 
-Abra `http://localhost:8000/docs` para o OpenAPI. O fluxo de falha pode ser exercitado assim:
-
-```powershell
-curl.exe http://localhost:8000/api/v1/checkout
-curl.exe -X POST http://localhost:8000/api/v1/failure -H "Content-Type: application/json" -d '{"enabled":true,"reason":"dependency_timeout"}'
-curl.exe http://localhost:8000/api/v1/checkout
-curl.exe http://localhost:8000/api/v1/status
-curl.exe -X POST http://localhost:8000/api/v1/failure -H "Content-Type: application/json" -d '{"enabled":false}'
-```
-
-O segundo `checkout` retorna `503` enquanto a falha esta ativa. A consulta a `/api/v1/status` representa a sonda de deteccao e atualiza o sinal de incidente.
-
-### Docker Compose, com Prometheus e Grafana
+Stack completa:
 
 ```powershell
 docker compose up --build
 ```
 
-| Servico | Porta | Uso |
+| Servico | Porta | Responsabilidade |
 |---|---:|---|
-| API | 8000 | OpenAPI, workload, falha e `/metrics` |
-| Prometheus | 9090 | coleta a cada 5 s |
-| Grafana | 3000 | dashboard provisionado |
+| FastAPI | 8000 | workload, falha controlada, status e OpenMetrics |
+| Prometheus | 9090 | scrape, series e exemplars com `trace_id` |
+| Tempo | 3200 | armazenamento e consulta de traces |
+| Loki | 3100 | armazenamento de logs OTLP estruturados |
+| Grafana | 3000 | navegacao provisionada entre os tres sinais |
+| OTel Collector | interna | roteamento OTLP para Tempo, Loki e evidencia |
 
-O Grafana esta configurado para visualizacao anonima local, sem credenciais cloud. O dashboard mostra incidente ativo, taxa de requests por status, p95 de duracao e eventos do ciclo de vida.
+Todas as imagens externas possuem versao e digest. O caminho default nao usa
+segredo, conta cloud, broker ou banco.
 
-### Execucao local sem Docker
+## Contrato HTTP
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --requirement requirements-dev.txt
-$env:PYTHONPATH = "src"
-python -m observability_stack.cli
+curl.exe http://localhost:8000/api/v1/checkout
+curl.exe -X POST http://localhost:8000/api/v1/failure `
+  -H "Content-Type: application/json" -H "X-Correlation-ID: incident-demo-001" `
+  -d '{"enabled":true,"incident_id":"incident-demo-001","reason":"dependency_timeout"}'
+curl.exe http://localhost:8000/api/v1/checkout -H "X-Correlation-ID: incident-demo-001"
+curl.exe http://localhost:8000/api/v1/status -H "X-Correlation-ID: incident-demo-001"
+curl.exe -X POST http://localhost:8000/api/v1/failure `
+  -H "Content-Type: application/json" -H "X-Correlation-ID: incident-demo-001" `
+  -d '{"enabled":false,"incident_id":"incident-demo-001"}'
 ```
 
-## Arquitetura e desacoplamento
+Cada resposta devolve `X-Correlation-ID` e `X-Trace-ID`. O checkout intermediario
+retorna `503`; depois da recuperacao volta a `200`.
+
+## Arquitetura
 
 ```text
-HTTP/FastAPI adapter -> ObservationService -> IncidentStore port -> in-memory adapter
-                                  |
-                                  +-> domain Incident / ControlledFailure
+FastAPI adapter -----------> ObservationService -----------> IncidentStore port
+      |                              |                              |
+      |                              +----> Incident domain          +-> memory
+      |
+      +-> Metrics adapter -> OpenMetrics -> Prometheus
+      +-> Telemetry adapter -> OTLP -> Collector -> Tempo / Loki
+                                             |
+                                             +-> evidence files
 
-HTTP middleware -> Prometheus adapter -> /metrics -> Prometheus -> Grafana
+External benchmark -> HTTP + /metrics + evidence files -> fail closed
 ```
 
-O dominio em `src/observability_stack/domain.py` nao conhece FastAPI, Prometheus ou armazenamento. `ObservationService` depende de dois ports pequenos: `IncidentStore` e `Clock`. Isso aplica SRP e ISP; o adapter em memoria e o relogio logico sao substituiveis nos testes, evidenciando LSP. A composicao acontece no adapter FastAPI, aplicando DIP. O desenho evita broker, banco e cloud porque nenhum deles ajuda a provar este claim (KISS/YAGNI).
+O dominio nao importa FastAPI, OpenTelemetry, Prometheus, storage, broker ou
+cloud SDK. `ObservationService` depende somente de `IncidentStore` e `Clock`.
+Isso preserva DIP/ISP, deixa LSP verificavel com adapters alternativos e mantem
+SRP entre politica, transporte e telemetria. Um monolito modular resolve o
+problema sem microservicos, Kafka, RabbitMQ ou banco (KISS/YAGNI).
 
-### Portas e adapters
-
-| Boundary | Port | Adapter local | Proximo adapter possivel |
-|---|---|---|---|
-| Estado do incidente | `IncidentStore` | `InMemoryIncidentStore` | Redis/Postgres, se persistencia virar requisito |
-| Tempo | `Clock` | `monotonic` na API; relogio logico no benchmark | relogio distribuido, se necessario |
-| Transporte | endpoints REST | FastAPI/Uvicorn | outro adapter HTTP sem mover o caso de uso |
-| Telemetria | metricas do adapter | `prometheus-client` | OpenTelemetry Collector, se houver necessidade de traces |
-
-Prometheus e Grafana foram escolhidos porque fornecem coleta pull, linguagem de consulta operacional e dashboard local sem agente cloud pago. A aplicacao expoe metricas no formato Prometheus; o compose apenas conecta os adapters.
+O adapter fala OTLP padrao. Trocar o Collector local por um endpoint real exige
+somente `OTEL_EXPORTER_OTLP_ENDPOINT`, sem alterar dominio ou caso de uso.
 
 ## Benchmark
 
-O benchmark usa um fixture de um incidente `dependency_timeout`, seed `42`, tres repeticoes e relogio logico. O resultado versionado esta em [`benchmarks/results/observability-stack-v1.json`](benchmarks/results/observability-stack-v1.json).
+```powershell
+python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
+```
+
+O JSON registra as tres amostras, deteccao, recuperacao, IDs de incidente, tres
+trace IDs de ciclo de vida por execucao, ambiente, comando e presenca em cada
+sinal. Menor `incident_recovery_seconds` e melhor; `signal_correlation_rate`
+precisa ser exatamente `1.0`.
+
+Os atrasos de 50 ms entre abrir, detectar e recuperar sao esperas reais do
+harness, nao avancos de relogio logico. O resultado demonstra integridade de
+instrumentacao local, nao MTTR, retencao ou alta disponibilidade de producao.
+
+## Qualidade e CI
 
 ```powershell
 $env:PYTHONPATH = "src"
-python -m observability_stack.benchmark --output benchmarks/results/observability-stack-v1.json
-python -m json.tool benchmarks/results/observability-stack-v1.json
-```
-
-Depois de construir a imagem, o mesmo harness pode ser executado no container e gravado pelo shell:
-
-```powershell
-docker run --rm observability-stack:local benchmark > benchmarks/results/docker-run.json
-```
-
-O JSON inclui metodo, imagem, fixture, repeticoes, amostras e metricas de deteccao/recuperacao. Valores menores de `simulated_mttr_minutes` sao melhores, mas o valor atual e intencionalmente fixo para tornar a evidencia reproduzivel.
-
-## Testes e CI
-
-```powershell
-$env:PYTHONPATH = "src"
-python -m compileall -q src tests
 python -m unittest discover -s tests -v
-ruff check src tests
+ruff check src tests tools
+coverage run --branch -m unittest discover -s tests
+coverage report --fail-under=90
+docker compose config --quiet
+docker compose -f docker-compose.evidence.yml config --quiet
 ```
 
-O workflow [`ci.yml`](.github/workflows/ci.yml) executa compilacao, testes, lint, valida o JSON do benchmark e constroi a imagem Docker. A validacao estrita local e:
+A CI reutiliza o perfil Python imutavel de `ci-cd-templates` e possui um job
+separado que constroi a imagem, executa o Compose de evidencia e valida o JSON.
+No estado atual sao `16` testes e `91%` de cobertura no nucleo testavel.
 
-```powershell
-.\tools\validate-project.ps1 -SkipDocker
-git diff --check
-```
-
-## Evidencia e limites
-
-- O caminho default nao requer segredo, conta cloud ou servico externo alem do daemon Docker para o caminho Docker.
-- O estado e em memoria e reinicia com o processo; isso e deliberado para o demo local.
-- O MTTR e simulado por relogio logico e nao mede disponibilidade de uma plataforma de producao.
-- Prometheus e Grafana sao imagens fixadas por tag no Compose; para reproducao de supply chain mais forte, fixe digests no ambiente de publicacao.
-
-Veja [`REFERENCES.md`](REFERENCES.md), [`sdd/spec.md`](sdd/spec.md) e o artefato de verificacao OpenSpec em [`openspec/artifacts/verification.md`](openspec/artifacts/verification.md).
+Detalhes: [decisao arquitetural](sdd/architecture-decision.md),
+[plano do benchmark](sdd/benchmark-plan.md) e [referencias](REFERENCES.md).

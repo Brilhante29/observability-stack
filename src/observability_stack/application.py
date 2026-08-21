@@ -13,8 +13,8 @@ class ObservationService:
         self._store = store
         self._clock = clock
 
-    def start_failure(self, reason: str) -> Incident:
-        incident = Incident(reason=reason, opened_at=self._clock())
+    def start_failure(self, incident_id: str, reason: str) -> Incident:
+        incident = Incident(incident_id=incident_id, reason=reason, opened_at=self._clock())
         self._store.put(incident)
         return incident
 
@@ -37,7 +37,7 @@ class ObservationService:
     def checkout(self) -> dict[str, str]:
         incident = self._store.get()
         if incident is not None and incident.active:
-            raise ControlledFailure(incident.reason)
+            raise ControlledFailure(incident.incident_id, incident.reason)
         return {"status": "ok", "service": "checkout"}
 
     def status(self) -> dict[str, object]:
@@ -47,6 +47,7 @@ class ObservationService:
         return {
             "active": incident.active,
             "incident": {
+                "incident_id": incident.incident_id,
                 "reason": incident.reason,
                 "opened_at": incident.opened_at,
                 "detected_at": incident.detected_at,

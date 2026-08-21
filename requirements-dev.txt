@@ -1,3 +1,5 @@
 -r requirements.txt
-pytest==8.3.4
-ruff==0.9.7
+coverage==7.15.4
+jsonschema==4.26.0
+mypy==2.3.1
+ruff==0.16.3

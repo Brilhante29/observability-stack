@@ -1,5 +1,7 @@
 # Component Pack
 
-Selected pack: `backend-reliability-platform`.
+Selected pack: `delivery-observability-infra`.
 
-Used inputs are the local FastAPI language profile, architecture/API/engineering decision matrices, benchmark-result contract, SDD templates and the existing strict validator. Required proof artifacts are the Dockerfile, Compose wiring, Prometheus config, Grafana dashboard, tests and versioned benchmark result.
+Used assets: architecture/stack decisions, OpenSpec/SDD graph, immutable Python
+CI profile, Docker evidence harness and benchmark-result contracts. Project
+outputs are two Compose profiles, signal configs, tests, dashboard and V1 JSON.

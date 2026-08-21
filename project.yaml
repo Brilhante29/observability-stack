@@ -1,30 +1,34 @@
 id: 25
 name: observability-stack
 program:
-  id: backend-reliability-platform
-  narrative_fit: "Demonstra uma API operavel com falha controlada, sinais Prometheus e evidencia reproduzivel de deteccao e recuperacao."
+  id: delivery-observability-infra
+  narrative_fit: "Prova um incidente local correlacionado em metricas, traces e logs, com dashboard e benchmark fail-closed."
   shared_assets:
     - "Contrato de benchmark JSON do portfolio"
+    - "Skill de workflow reutilizavel e CI por perfil"
 status: benchmarked
-claim: observabilidade ponta a ponta
+claim: observabilidade ponta a ponta com correlacao de tres sinais
 stack:
   - python-3.12
   - fastapi
-  - prometheus-client
+  - opentelemetry-sdk
+  - opentelemetry-collector
   - prometheus
+  - tempo
+  - loki
   - grafana
   - docker-compose
 language_profile:
   primary: fastapi-backend
   secondary: []
-  reason: "FastAPI fornece uma API HTTP pequena e documentada; Python permite manter o benchmark deterministico no mesmo codigo de aplicacao."
+  reason: "FastAPI mantem o workload pequeno; OpenTelemetry padroniza traces e logs sem acoplar o dominio a um backend."
 decision_brain:
   agentic_spec:
     source: .portfolio/decision-brain/agentic-spec-governance.yaml
     spec_store: portfolio-reuse-kit
     schema: portfolio-system
     project_config: openspec/config.yaml
-    component_pack: backend-reliability-platform
+    component_pack: delivery-observability-infra
     artifact_graph:
       - intent->portfolio-impact->architecture-record
       - architecture-record+portfolio-impact->component-pack
@@ -39,54 +43,57 @@ decision_brain:
     review_path: sdd/reuse-improvement-review.md
     current_status: recorded
   principles:
-    coupling_rule: "Dominio e casos de uso nao dependem de framework, banco, broker, cloud SDK, transporte ou UI."
+    coupling_rule: "Dominio e casos de uso nao importam FastAPI, OpenTelemetry, Prometheus, storage, broker ou cloud SDK."
     solid: [srp, ocp, lsp, isp, dip]
-    simplicity_rule: "Escolher a menor implementacao que prove o claim e rejeitar infraestrutura sem evidencia de necessidade."
-    testability_rule: "ObservationService recebe IncidentStore e Clock, portanto roda sem HTTP, Prometheus ou Docker."
+    simplicity_rule: "Usar um monolito modular e adicionar apenas backends que provam metricas, traces, logs e navegacao entre sinais."
+    testability_rule: "ObservationService recebe IncidentStore e Clock; telemetria e composta no adapter HTTP."
     rejected_overengineering:
-      - "Microservicos, broker e banco foram rejeitados por nao contribuirem para o benchmark local."
+      - "Microservicos e broker foram rejeitados porque nao ha fan-out, fila ou deploy independente."
+      - "Banco foi rejeitado porque persistencia nao participa do claim."
   stack_profile: fastapi-backend
   api_style: rest-http
   messaging: none
   cloud:
-    mode: none
-    local_provider: none
-    real_provider_target: none
+    mode: local-first
+    local_provider: docker-compose
+    real_provider_target: pluggable-otlp-backend
     emulated_services: []
-    adapter_rule: "Nao ha dependencia cloud; qualquer integracao futura deve entrar por um port e um adapter fora do dominio."
-    config_switch: CLOUD_PROVIDER=none
-    unsupported_behaviors: []
+    adapter_rule: "A aplicacao fala OTLP; Collector e backends podem ser trocados sem mudar dominio ou casos de uso."
+    config_switch: OTEL_EXPORTER_OTLP_ENDPOINT
+    unsupported_behaviors:
+      - "Nenhuma paridade com SLO, retencao ou alta disponibilidade de producao e alegada."
   database: none
-  runtime: "Python 3.12 slim com Uvicorn; um processo local e suficiente para a demonstracao."
-  library_policy: "FastAPI, prometheus-client e Uvicorn sao dependencias diretas do sinal demonstrado; httpx suporta o teste do contrato HTTP."
+  runtime: "Python 3.12.13 sem root; Compose fixa imagens por tag e digest."
+  library_policy: "Dependencias Python diretas sao fixadas; integracoes externas usam OTLP e configuracao, nao imports no dominio."
   record_path: sdd/technical-decision.md
   rejected_options:
-    - option: "Go + OpenTelemetry Collector"
-      reason: "Aumentaria a superficie do scaffold sem melhorar o benchmark de MTTR simulado."
-    - option: "Kumo ou AWS"
-      reason: "O exemplo nao possui capacidade cloud; adicionar um provider seria infraestrutura sem valor para o claim."
+    - option: "Apenas Prometheus e Grafana"
+      reason: "Nao provaria correlacao entre metricas, traces e logs."
+    - option: "Kafka ou RabbitMQ"
+      reason: "Nao existe requisito de mensageria neste fluxo sincrono."
 architecture:
-  style: hexagonal
-  reason: "O caso de uso de incidente e checkout e pequeno, mas precisa provar desacoplamento entre politica, armazenamento, HTTP e metricas. Hexagonal torna essa fronteira visivel e testavel."
+  style: hexagonal-modular-monolith
+  reason: "O incidente e um unico dominio pequeno; portas isolam estado e tempo, enquanto HTTP e telemetria ficam nos adapters."
   problem_forces:
     domain_complexity: low
-    integration_pressure: medium
+    integration_pressure: high
     ui_state_complexity: none
     data_or_ml_reproducibility: high
-    auditability: medium
+    auditability: high
     throughput_or_async: low
     independent_deployability: low
-  dependency_rule: "Dominio e aplicacao nao importam FastAPI, Prometheus, banco, broker ou cloud; adapters dependem dos ports internos."
+  dependency_rule: "Dependencias apontam para dentro; backends observaveis recebem sinais por OTLP ou scrape."
   boundaries:
-    - "domain.py: estado imutavel e transicoes de incidente"
-    - "application.py: casos de uso e ports"
-    - "infrastructure: armazenamento em memoria e metricas Prometheus"
-    - "api.py: adapter HTTP e contratos Pydantic"
+    - "domain.py: identidade, invariantes e transicoes imutaveis"
+    - "application.py: casos de uso sobre IncidentStore e Clock"
+    - "infrastructure: store, metricas e telemetria"
+    - "api.py: composicao HTTP e correlacao"
+    - "benchmark.py: consumidor externo fail-closed"
   rejected_alternatives:
     - style: microservices
-      reason: "Um unico processo local prova o fluxo com menor custo operacional e sem inventar distribuicao."
+      reason: "Distribuicao adicionaria falhas sem aumentar a evidencia dos sinais."
     - style: event-driven
-      reason: "Nao ha fan-out ou processamento assincrono que justifique broker para este benchmark."
+      reason: "Nao ha processamento assincrono ou fan-out."
 design_system:
   tokens: .portfolio/design-system/tokens.yaml
   readme_components:
@@ -100,7 +107,6 @@ reuse:
   uses:
     - catalog
     - programs
-    - proficiency-map
     - component-packs
     - openspec-schema
     - decision-brain
@@ -114,10 +120,11 @@ reuse:
     - templates
     - skills
 benchmark:
-  primary_metric: simulated_mttr_minutes
-  unit: minutes
-  command: "PYTHONPATH=src python -m observability_stack.benchmark --output benchmarks/results/observability-stack-v1.json"
+  primary_metric: incident_recovery_seconds
+  unit: seconds
+  command: "docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark"
   result_path: benchmarks/results/observability-stack-v1.json
+  publication_result_path: benchmarks/publication/observability-stack-v2.json
 release:
   docker: "docker compose up --build"
   no_secret_default_path: true

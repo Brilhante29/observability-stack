@@ -1,0 +1,44 @@
+name: observability-stack-evidence
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.158.0@sha256:c5918f78992ee73b0d6f0e599423ac5ec52dd5d9726733114d6eca53d5a32ed5
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./config/otel-collector-evidence.yml:/etc/otelcol-contrib/config.yml:ro
+      - signal-evidence:/evidence
+
+  app:
+    build: .
+    image: observability-stack:local
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on: [otel-collector]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=1)"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 5s
+
+  benchmark:
+    image: observability-stack:local
+    command:
+      - benchmark
+      - --base-url
+      - http://app:8000
+      - --traces
+      - /evidence/traces.json
+      - --logs
+      - /evidence/logs.json
+      - --output
+      - ${BENCHMARK_OUTPUT:-/output/observability-stack-v1.json}
+    volumes:
+      - signal-evidence:/evidence:ro
+      - ./benchmarks/results:/output
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  signal-evidence:

@@ -2,67 +2,42 @@
 
 Project: `25 - observability-stack`
 
-## Principal Agent Summary
+## Current state
 
-- Objective: turn the scaffold into a local-first observability demonstration.
-- Portfolio program: `backend-reliability-platform`
-- Public proof claim: observable controlled failure with reproducible simulated MTTR.
-- Primary benchmark: `simulated_mttr_minutes`
-- Default runnable path: `docker compose up --build`
+- Macro: `delivery-observability-infra`.
+- Claim: one controlled incident correlated across metrics, traces and logs.
+- Architecture: hexagonal modular monolith.
+- Metric: `incident_recovery_seconds`; mandatory gate `signal_correlation_rate = 1.0`.
+- Canonical result: `benchmarks/results/observability-stack-v1.json`.
 
-## Subagent Decisions
+## Implemented
 
-| Role | Decision | Evidence Path | Status |
-|---|---|---|---|
-| `program-planner` | backend reliability signal | `project.yaml`, `sdd/spec.md` | done |
-| `architecture-selector` | small hexagonal modular monolith | `sdd/architecture-decision.md` | done |
-| `engineering-principles-reviewer` | ports isolate policy from adapters | `sdd/technical-decision.md` | done |
-| `stack-decision-agent` | Python + FastAPI + Prometheus | `requirements.txt`, `sdd/technical-decision.md` | done |
-| `api-style-agent` | REST with OpenAPI | `src/observability_stack/api.py` | done |
-| `cloud-local-first-agent` | no cloud capability; local-only | `README.md`, `project.yaml` | done |
-| `messaging-agent` | no broker | `sdd/technical-decision.md` | done |
-| `language-profile-agent` | fastapi-backend | `project.yaml` | done |
-| `benchmark-harness-agent` | logical clock, 3 repetitions | `src/observability_stack/benchmark.py` | done |
-| `design-system-agent` | Prometheus/Grafana dashboard | `grafana/dashboards/observability-stack.json` | done |
-| `security-reuse-reviewer` | no secrets; references recorded | `REFERENCES.md`, `sdd/reuse-improvement-review.md` | done |
-| `release-ci-publisher` | CI, Docker and validation | `.github/workflows/ci.yml`, `tools/validate-project.ps1` | done |
+- Real `200 -> 503 -> 200` HTTP scenario with monotonic server timing.
+- OpenMetrics exemplars and explicit OpenTelemetry traces/logs.
+- Collector evidence exporters plus full Prometheus/Tempo/Loki/Grafana Compose.
+- Fail-closed JSON validator, 16 tests, 91% coverage and reusable Python CI.
+- Digest-pinned runtime images and non-root application image.
 
-## Local-First Runtime
+## Validation state
 
-- Docker command: `docker compose up --build`
-- Local services: API `8000`, Prometheus `9090`, Grafana `3000`
-- Kumo services, if any: none; this is not a cloud-backed project.
-- Real cloud adapter target, if any: none.
-- Config switch: `CLOUD_PROVIDER=none`; future providers must sit behind an adapter.
-- Default path requires paid secret: no.
+- Passed: 16 unit/contract tests, Ruff, 91% coverage, two Compose model parses,
+  `git diff --check` and application image build.
+- Pending: create the clean source commit, run the V2 producer, publish and
+  verify exact-head GitHub CI.
+- Block cause: privileged-command quota until 2026-08-21 00:36 -03:00, not a
+  repository defect.
 
-## Architecture Boundaries
+## Next exact commands
 
-- Domain boundary: immutable `Incident` and `ControlledFailure`.
-- Use-case boundary: `ObservationService`.
-- Ports: `IncidentStore` and `Clock`.
-- Adapters: in-memory store, FastAPI/Uvicorn and Prometheus exporter.
-- Dependency direction rule: adapters point inward; domain points to nothing external.
+```powershell
+git add --all
+git commit -m "feat: correlate incident metrics traces and logs"
+python tools/benchmark_v2.py
+python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
+python tools/validate-publication.py
+```
 
-## Benchmark Handoff
-
-- Metric: `simulated_mttr_minutes`.
-- Unit: minutes.
-- Higher or lower is better: lower.
-- Command: `PYTHONPATH=src python -m observability_stack.benchmark --output benchmarks/results/observability-stack-v1.json`.
-- Result path: `benchmarks/results/observability-stack-v1.json`.
-- Dataset or fixture: one deterministic `dependency_timeout` incident, seed `42`.
-
-## Open Risks
-
-- The in-memory adapter resets on restart.
-- The metric is a deterministic simulation and must not be described as production MTTR.
-
-## Publication Gates
-
-- [x] Docker path documented.
-- [x] benchmark result exists.
-- [x] README starts with project number, claim and benchmark.
-- [x] references are documented.
-- [x] no secret in files or git remote.
-- [x] validation and diff checks are part of the release procedure.
+After those pass, replace the README benchmark headline with the measured median,
+set `status: published`, complete OpenSpec/release gates, commit V1/V2, push,
+verify exact-head CI and promote the reusable observability contract/skill into
+`portfolio-reuse-kit`.

@@ -1,5 +1,9 @@
 # Architecture Record
 
-Use a small hexagonal modular monolith. `domain.py` contains framework-free immutable incident transitions. `application.py` owns `ObservationService` and depends only on `IncidentStore` and `Clock` ports. FastAPI, in-memory state and Prometheus are adapters composed outside the policy.
+Use a hexagonal modular monolith. Framework-free domain/application code depends
+only on `IncidentStore` and `Clock`. HTTP, metric, telemetry, storage and
+benchmark concerns are adapters. OTLP is the pluggable boundary between local
+Collector and a future managed backend.
 
-This structure applies SRP, ISP and DIP directly, keeps LSP testable with alternate store/clock implementations, and follows KISS/YAGNI by excluding a broker, database, cloud emulator and tracing collector. Unit tests execute the application without HTTP or infrastructure.
+Microservices, broker, database and cloud SDK were rejected because none improves
+the three-signal correlation proof.

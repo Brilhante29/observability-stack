@@ -1,33 +1,94 @@
+name: observability-stack
+
 services:
+  tempo:
+    image: grafana/tempo:3.0.0@sha256:78439f7f7cf3c97122846c13a832e060c6c7ef67dcc814dccf0a5f3f78393a93
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    volumes:
+      - ./config/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
+    ports: ["3200:3200"]
+
+  loki:
+    image: grafana/loki:3.7.4@sha256:87f0a067673756a3cede1bcbf0c74875f7df9b09fddb53e399d0c576f756cfcc
+    command: ["-config.file=/etc/loki/loki.yml"]
+    volumes:
+      - ./config/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    ports: ["3100:3100"]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.158.0@sha256:c5918f78992ee73b0d6f0e599423ac5ec52dd5d9726733114d6eca53d5a32ed5
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./config/otel-collector.yml:/etc/otelcol-contrib/config.yml:ro
+      - signal-evidence:/evidence
+    depends_on: [tempo, loki]
+
   app:
     build: .
     image: observability-stack:local
-    ports:
-      - "8000:8000"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    ports: ["8000:8000"]
+    depends_on: [otel-collector]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=1)"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 5s
 
   prometheus:
-    image: prom/prometheus:v2.53.4
+    image: prom/prometheus:v3.12.0@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-    ports:
-      - "9090:9090"
+      - "--enable-feature=exemplar-storage"
+    ports: ["9090:9090"]
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
   grafana:
-    image: grafana/grafana:11.4.0
+    image: grafana/grafana:13.1.0@sha256:121a7a9ece6dc10b969f1f96eed64b4f07dfac0d0b8abc070f7cb83bbde86f63
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
       GF_USERS_ALLOW_SIGN_UP: "false"
-    ports:
-      - "3000:3000"
+    ports: ["3000:3000"]
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on: [prometheus, tempo, loki]
+
+  benchmark:
+    image: observability-stack:local
+    command:
+      - benchmark
+      - --base-url
+      - http://app:8000
+      - --traces
+      - /evidence/traces.json
+      - --logs
+      - /evidence/logs.json
+      - --output
+      - /output/observability-stack-v1.json
+    volumes:
+      - signal-evidence:/evidence:ro
+      - ./benchmarks/results:/output
     depends_on:
-      - prometheus
+      app:
+        condition: service_healthy
+
+volumes:
+  grafana-data:
+  loki-data:
+  prometheus-data:
+  signal-evidence:
+  tempo-data:

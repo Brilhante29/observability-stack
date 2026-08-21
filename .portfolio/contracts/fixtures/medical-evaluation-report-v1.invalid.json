@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "project": "leaky-medical-example",
+  "metric": "segmentation_dice",
+  "value": 0.99,
+  "unit": "ratio",
+  "timestamp": "2026-08-17T00:00:00Z",
+  "command": "python benchmark.py",
+  "repeat": 1,
+  "measured_iterations": 1,
+  "samples": [0.99],
+  "metrics": {
+    "accuracy": 0.99,
+    "sensitivity": 0.99,
+    "specificity": 0.99,
+    "true_negative": 99,
+    "false_positive": 1,
+    "false_negative": 1,
+    "true_positive": 99,
+    "latency_p50_ms": 1.0,
+    "latency_p95_ms": 1.0
+  },
+  "dataset": {
+    "kind": "patient-data",
+    "clinical_use": true,
+    "patient_count": 4,
+    "manifest_sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "split": {
+    "unit": "patient",
+    "train_patient_ids": ["p01"],
+    "validation_patient_ids": ["p02"],
+    "test_patient_ids": ["p03"],
+    "overlap_count": 0,
+    "test_used_for_selection": true
+  },
+  "model": {
+    "name": "leaky-model",
+    "artifact_sha256": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "environment": {},
+  "proof": {
+    "scope": "unsafe claim",
+    "limitations": ["none"],
+    "benchmark_signature": { "seed": 1 }
+  },
+  "failures": 0
+}

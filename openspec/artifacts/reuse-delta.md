@@ -1,5 +1,8 @@
 # Reuse Delta
 
-Project-specific additions are a controlled incident fixture and a logical-clock benchmark that reuse the application service without adding a new shared-kit abstraction. The review records one validation improvement and a backlog proposal to strengthen the canonical benchmark schema with method and image fields.
+Promote a reusable observability evidence contract that requires real lifecycle
+timing, metric/trace/log presence per run and `signal_correlation_rate = 1.0`.
+Promote the fast-evidence/full-exploration Compose split and immutable image rule.
 
-No cloud or broker component was added to the kit because this project has no corresponding product capability.
+Do not promote incident-specific API/domain code. Do not add a broker, database
+or fake cloud adapter.

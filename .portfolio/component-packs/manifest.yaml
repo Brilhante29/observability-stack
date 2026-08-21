@@ -119,6 +119,8 @@ packs:
     problem: Evaluate LLM, RAG, embeddings, prompts, agents, and inference cost with reproducible evidence.
     extra_skills:
       - fastapi-backend
+      - python-computer-vision
+      - medical-ai-evaluation
       - node-typescript-backend
     benchmark_focus:
       - exact_match
@@ -155,14 +157,19 @@ packs:
       - throughput_rps
     preferred_artifacts:
       - dataset card
+      - dataset source, license, checksum, and split manifest
       - preprocessing manifest
       - model card
+      - checkpoint and model-manifest SHA-256 contract
       - confusion matrix
       - inference latency script
     rejection_rules:
       - Reject health or medical claims without clear demo limitation.
+      - Reject medical thresholds selected on test data.
+      - Reject synthetic scores when labels directly control measured features.
       - Reject training notebooks without Docker path.
       - Reject serving APIs without latency benchmark.
+      - Reject model consumers that load a checkpoint before manifest and SHA-256 verification.
 
   - id: backend-reliability-platform
     name: Backend Reliability and Architecture Platform
@@ -170,12 +177,14 @@ packs:
     program_id: backend-reliability-platform
     problem: Prove backend architecture, reliability, latency, consistency, and failure handling.
     extra_skills:
+      - backend-reliability-evidence
       - spring-kotlin-backend
       - go-backend
       - node-typescript-backend
     benchmark_focus:
       - p95_latency_ms
       - p99_latency_ms
+      - conformance_rate_percent
       - throughput_rps
       - consistency_rate
       - event_throughput
@@ -186,10 +195,24 @@ packs:
       - load test
       - failure scenario
       - consistency proof
+      - local-cloud parity report
+      - versioned cross-repository contract
+      - benchmark result v2 with failure metrics
+      - tenant isolation proof
+      - protocol semantic parity test
+      - ingress context propagation contract
+      - scoped local-cloud conformance report
     rejection_rules:
       - Reject framework-first architecture with domain depending on infra.
       - Reject RabbitMQ, Kafka, or microservices unless the benchmark needs async scale or fault isolation.
       - Reject "clean architecture" claims without dependency direction tests.
+      - Reject mutable cloud emulator images or parity claims without provider metadata.
+      - Reject infrastructure named in README when it is absent from the measured path.
+      - Reject no-op compensation, prewritten benchmark artifacts, and tautological consistency metrics.
+      - Reject schema-per-tenant claims backed only by maps or mocks.
+      - Reject REST versus gRPC comparisons that use different handlers, payloads, or workloads.
+      - Reject gateway observability claims with only a no-op exporter or in-process quota presented as distributed.
+      - Reject AWS parity claims broader than the operations exercised through the pinned local provider.
 
   - id: mlops-data-platform
     name: MLOps and Data Platform
@@ -198,22 +221,43 @@ packs:
     problem: Move models and data through training, validation, feature serving, drift detection, and streaming.
     extra_skills:
       - fastapi-backend
+      - medical-ai-evaluation
+      - python-feature-store
+      - python-model-monitoring
     benchmark_focus:
       - time_to_production
       - drift_alarm_delta
+      - drift_alarm_f1
+      - drift_false_positive_rate
+      - drift_detection_p95_ms
       - feature_read_latency_ms
+      - segmentation_dice
+      - sensitivity
+      - specificity
       - rejected_rows_ratio
       - messages_per_second
     preferred_artifacts:
-      - data contract
-      - feature schema
+      - validated batch manifest with contract and artifact digests
+      - versioned data contract
+      - feature snapshot manifest
       - model registry record
+      - medical evaluation report with grouped split identity and confusion matrix
       - drift baseline
+      - drift report
+      - model and feature-schema identity
+      - labeled stable, shifted, and unsupported drift scenarios
       - pipeline DAG
     rejection_rules:
       - Reject ML demos with no data validation.
+      - Reject medical metrics selected on test data, missing grouped identity, or presented as clinical evidence when produced from synthetic fixtures.
       - Reject pipelines that cannot run locally.
       - Reject streaming claims without message-rate benchmark.
+      - Reject cross-repository data flow without versioned manifests and SHA-256 artifact identity.
+      - Reject feature or drift consumers that bypass the validated-batch status and contract identity.
+      - Reject reference/current drift comparisons across model artifact, producer, contract, time-order, or feature-schema identity.
+      - Reject thresholds tuned on the scored evaluation scenarios or alarms presented as proof of accuracy decay without labels.
+      - Reject feature-store performance claims without independent point-in-time, future-leak, TTL, and online-value correctness gates.
+      - Reject smoke evidence whose workload overrides are absent from workload, comparability key, or effective config digest.
 
   - id: delivery-observability-infra
     name: Delivery, Observability, and Infrastructure
@@ -222,17 +266,27 @@ packs:
     problem: Standardize CI, observability, infrastructure, and load evidence across the portfolio.
     extra_skills:
       - go-backend
+      - github-actions-reusable-workflow
     benchmark_focus:
       - build_time_seconds
-      - mttr_simulated_minutes
+      - incident_recovery_seconds
+      - signal_correlation_rate
       - provision_time_seconds
       - p95_load_curve
     preferred_artifacts:
-      - GitHub Actions workflow
+      - ci-profile-v1 with immutable workflow source and exact-head evidence
+      - executable stack fixture
+      - fast evidence Compose and full exploration Compose
+      - metric, trace, and log evidence joined by incident and trace identity
+      - zero-finding actionlint, zizmor, and local policy report
       - dashboard JSON or screenshot recipe
       - Terraform plan summary
       - k6 profile
     rejection_rules:
       - Reject cloud-only demos without local-first path.
-      - Reject dashboards without a simulated incident.
+      - Reject mutable action or reusable-workflow refs, write-all permissions, persisted checkout credentials, or arbitrary command inputs.
+      - Reject reusable workflows that are only linted and never executed against a stack fixture.
+      - Reject comparisons that mix static policy latency with hosted build duration.
+      - Reject dashboards without a controlled measured incident.
+      - Reject observability benchmarks that do not fail when one signal loses correlation.
       - Reject load-test repos without reusable scenarios.

@@ -2,79 +2,44 @@
 
 ## Status
 
-Accepted
+Accepted: hexagonal modular monolith.
 
-## Context
+## Forces
 
-Project: `observability-stack #25`
-Claim: observabilidade ponta a ponta
-Benchmark: `simulated_mttr_minutes`
-
-Problem forces:
-
-- Domain complexity: low
-- Integration pressure: medium because HTTP, Prometheus and dashboard must be wired.
-- UI state complexity: none
-- Data/ML reproducibility: high for the logical-clock benchmark.
-- Auditability/event history: medium through incident timestamps and Prometheus counters.
-- Throughput/async pressure: low
-- Independent deployability need: low; one container is the intended proof.
+The domain is small, integration pressure and auditability are high, and there is
+no need for independent deployment, asynchronous fan-out or durable application
+state. The proof needs real HTTP behavior plus three correlated signals.
 
 ## Decision
 
-Chosen architecture: small hexagonal modular monolith.
+`domain.py` owns immutable incident state and time invariants. `application.py`
+owns use cases over the narrow `IncidentStore` and `Clock` ports. FastAPI,
+in-memory storage, Prometheus metrics, OpenTelemetry and the external benchmark
+are adapters composed around those boundaries.
 
-Reason:
+Dependency direction is always inward. Domain and application do not import
+FastAPI, OpenTelemetry, Prometheus, Docker, storage engines, brokers or cloud
+SDKs.
 
-The claim is about operational signals and recovery behavior, not distributed topology. A single service keeps the demo local and repeatable while making domain/application boundaries explicit. `domain.py` owns immutable incident transitions, `application.py` owns use cases and ports, and adapters own HTTP, storage and metrics.
+## Principles
 
-Dependency rule:
+- SRP: policy, HTTP, metrics, telemetry, storage and evidence validation have separate owners.
+- OCP/DIP: storage and signal backends change through ports, OTLP or scrape configuration.
+- LSP/ISP: the two-method store and callable clock are replaced in unit tests without semantic changes.
+- KISS/YAGNI: one modular service; no microservices, broker, database or cloud dependency.
+- DRY: lifecycle timing and invariants exist once in the application/domain path used by API and benchmark.
 
-Domain and application code do not import FastAPI, Prometheus, storage engines, brokers, cloud SDKs or UI. Adapters depend inward on ports and are composed at the API boundary.
+## Rejected alternatives
 
-## Rejected Alternatives
-
-| Alternative | Why rejected |
+| Alternative | Reason |
 |---|---|
-| Microservices | Adds network and deployment failure modes without improving the local MTTR proof. |
-| Event-driven with broker | No asynchronous fan-out or durable event stream is needed for this scenario. |
-| Full OpenTelemetry Collector stack | Useful for traces, but more moving parts than the claim needs; Prometheus metrics are sufficient. |
-
-## Folder Layout
-
-```text
-src/observability_stack/
-  domain.py
-  ports.py
-  application.py
-  api.py
-  benchmark.py
-  infrastructure/
-tests/
-benchmarks/results/
-prometheus.yml
-grafana/
-```
-
-## Testing Strategy
-
-- Unit tests: pure incident state and `ObservationService` with a manual clock/store.
-- Contract tests: FastAPI health, checkout, failure toggle, status and Prometheus exposition.
-- Benchmark: same application service with a deterministic logical clock and a fixed fixture.
+| Metrics-only stack | Cannot prove trace/log correlation. |
+| Microservices | Adds distribution without a deployability requirement. |
+| Kafka or RabbitMQ | No queue, fan-out or asynchronous workload exists. |
+| Persistent database | Persistence does not affect the instrumentation claim. |
 
 ## Consequences
 
-Positive:
-
-- The public runtime is easy to start and inspect with curl, OpenAPI, Prometheus and Grafana.
-- The benchmark number is independent of host scheduling and network latency.
-- A future Redis/Postgres adapter can be added without changing domain policy.
-
-Tradeoffs:
-
-- Incident state is process-local and resets on restart.
-- The MTTR number is a simulation, not a production SLO measurement.
-
-Migration path:
-
-Add a durable `IncidentStore` adapter and a real probe/clock only when a persistence or production-like measurement requirement is demonstrated.
+The service remains easy to test and the Collector/backend can be replaced
+without domain changes. Incident state resets with the process, and the local
+benchmark must not be presented as a production SLO.

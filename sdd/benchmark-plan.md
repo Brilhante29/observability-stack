@@ -2,46 +2,38 @@
 
 ## Hypothesis
 
-The service can demonstrate an observable failure lifecycle with a deterministic simulated MTTR of `1.2 minutes`.
+Every measured incident can be correlated without gaps across metric, trace and
+log evidence while preserving the real HTTP failure lifecycle.
 
-## Command
+## Canonical command
 
 ```powershell
-$env:PYTHONPATH = "src"
-python -m observability_stack.benchmark --output benchmarks/results/observability-stack-v1.json
+docker compose -f docker-compose.evidence.yml up --build --abort-on-container-exit --exit-code-from benchmark
+python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
 ```
-
-## Environment
-
-- Runtime: Python 3.12 or the `observability-stack:local` image.
-- Docker services: not required for the logical-clock result; optional for the API/dashboard path.
-- Date: recorded in the JSON result.
-- Host scheduling: excluded from the metric by design.
-
-## Inputs
-
-- Fixture: one controlled `dependency_timeout` incident.
-- Dataset size: one incident per repetition.
-- Repetitions: 3.
-- Warmup: none; all times are logical.
-- Seed: 42, recorded for fixture identity.
 
 ## Method
 
-Open at logical `t=0s`, advance to `t=24s` and call `detect_failure`, advance to `t=72s` and call `recover_failure`. The primary metric is recovery time from open divided by 60. Repeating the same fixture demonstrates that the harness is deterministic.
+One warmup request precedes three measured incidents. Each run opens a unique
+incident, observes the controlled `503`, waits 50 ms, detects it, waits another
+50 ms, recovers it and confirms `200`. The API measures detection and recovery
+from `time.monotonic()`.
+
+The harness then requires:
+
+- the incident ID and lifecycle trace IDs in OpenMetrics exemplars;
+- the incident ID and all lifecycle trace IDs in Collector trace evidence;
+- the incident ID and all lifecycle trace IDs in Collector log evidence.
 
 ## Metrics
 
-| Metric | Unit | Source | Why it matters |
-|---|---:|---|---|
-| simulated_mttr_minutes | minutes | benchmark harness | primary portfolio claim |
-| detection_seconds | seconds | incident state | shows time to detect |
-| recovery_seconds | seconds | incident state | explains the primary result |
+| Metric | Unit | Gate |
+|---|---:|---|
+| `incident_recovery_seconds` | seconds | primary; lower is better |
+| `incident_detection_seconds` | seconds | diagnostic |
+| `signal_correlation_rate` | ratio | must equal `1.0` |
 
-## Result schema
+## Validity
 
-The versioned file `benchmarks/results/observability-stack-v1.json` includes project, schema version, metric, value, unit, timestamp, command, method, image, fixture, environment, samples and summary metrics. The expected value is `1.2` minutes and lower is better.
-
-## Post angle
-
-#25 observability-stack: a local FastAPI failure scenario whose Prometheus signals and logical-clock benchmark make detection and recovery reviewable without cloud credentials.
+The delays are real waits and the measurements are real server monotonic time.
+The benchmark proves local instrumentation integrity, not production MTTR.

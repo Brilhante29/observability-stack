@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Actions Reusable Workflow"
+  short_description: "Build secure executable CI profiles"
+  default_prompt: "Use the reusable workflow contract to select, secure, execute, and verify the CI profile for this repository."

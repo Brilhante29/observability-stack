@@ -1,10 +1,10 @@
 # Tasks
 
-- [x] Implement domain incident state and controlled failure policy.
-- [x] Implement application service with store and clock ports.
-- [x] Add FastAPI workload, failure control, status probe and `/metrics`.
-- [x] Add Dockerfile, Compose, Prometheus config and Grafana provisioning.
-- [x] Add unit, API contract and benchmark tests.
-- [x] Generate and version benchmark JSON.
-- [x] Align README, SDD, references and portfolio control records.
-- [x] Run strict validation and `git diff --check`.
+- [x] Preserve framework-free incident domain and application ports.
+- [x] Implement real HTTP lifecycle with correlation headers.
+- [x] Add OpenMetrics exemplars and OpenTelemetry traces/logs.
+- [x] Add evidence and full exploration Compose profiles with immutable images.
+- [x] Add fail-closed benchmark validator, tests, coverage and reusable CI.
+- [x] Align README, SDD, OpenSpec and portfolio macro.
+- [ ] Execute evidence Compose and version the measured V1 result.
+- [ ] Publish exact head, verify GitHub CI and promote the kit delta.

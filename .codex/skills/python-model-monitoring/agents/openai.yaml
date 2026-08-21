@@ -1,0 +1,4 @@
+interface:
+  display_name: "Python Model Monitoring"
+  short_description: "Design auditable drift detection and monitoring evidence"
+  default_prompt: "Design or audit a Python model-monitoring repository with immutable artifact identity, explicit drift claim boundaries, corrected statistical evidence, and reproducible Docker benchmarks."

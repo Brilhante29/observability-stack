@@ -36,6 +36,36 @@
       "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
       "targets": [{"expr": "sum by (event) (increase(observability_incident_events_total[15m]))", "refId": "A", "legendFormat": "{{event}}"}],
       "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "Correlated incident logs",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 16},
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [
+        {
+          "datasource": {"type": "loki", "uid": "loki"},
+          "expr": "{service_name=\\\"observability-stack\\\"} |= \\\"incident.lifecycle\\\"",
+          "refId": "A"
+        }
+      ],
+      "options": {"showTime": true, "showLabels": true, "wrapLogMessage": true}
+    },
+    {
+      "id": 6,
+      "type": "traces",
+      "title": "Incident traces",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 16},
+      "datasource": {"type": "tempo", "uid": "tempo"},
+      "targets": [
+        {
+          "datasource": {"type": "tempo", "uid": "tempo"},
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \\\"observability-stack\\\" }",
+          "refId": "A"
+        }
+      ]
     }
   ]
 }

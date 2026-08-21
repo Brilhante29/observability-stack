@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "profile_id": "python-312",
+  "workflow": {
+    "repository": "Brilhante29/ci-cd-templates",
+    "path": ".github/workflows/reusable-python.yml",
+    "source_commit": "bc591185eeb3ec73ff550fa6b1fdf4d41885a55e",
+    "trigger": "workflow_call",
+    "runner": "ubuntu-24.04",
+    "timeout_minutes": 15
+  },
+  "runtime": {
+    "ecosystem": "python",
+    "version": "3.12.13"
+  },
+  "commands": [
+    "python -m ruff check src tests tools",
+    "python -m mypy src",
+    "python -m coverage run -m unittest discover -s tests -v"
+  ],
+  "supply_chain": {
+    "actions_pinned_to_full_sha": true,
+    "checkout_persist_credentials": false,
+    "permissions": "read-only",
+    "lockfile_required": true,
+    "arbitrary_command_inputs": false
+  },
+  "verification": {
+    "fixture_path": "examples/python",
+    "static_findings": 0,
+    "exact_head_ci_run_url": "https://github.com/Brilhante29/ci-cd-templates/actions/runs/32001541506",
+    "conclusion": "success"
+  }
+}

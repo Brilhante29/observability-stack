@@ -95,8 +95,32 @@ try {
     if (Test-Path -LiteralPath (Join-Path $root "tests") -PathType Container) {
       Invoke-Checked "python compile tests" { python -m compileall -q (Join-Path $root "tests") }
       Invoke-Checked "python unittest" { python -m unittest discover -s (Join-Path $root "tests") -v }
+      Invoke-Checked "ruff" { python -m ruff check src tests tools }
+      Invoke-Checked "mypy" { python -m mypy src }
+      Invoke-Checked "coverage" {
+        python -m coverage erase
+        python -m coverage run --branch -m unittest discover -s tests
+        python -m coverage report --fail-under=90
+      }
     }
     $env:PYTHONPATH = $previousPythonPath
+  }
+} finally {
+  Pop-Location
+}
+
+$canonicalBenchmark = Join-Path $root "benchmarks/results/observability-stack-v1.json"
+if (Test-Path -LiteralPath $canonicalBenchmark -PathType Leaf) {
+  Invoke-Checked "three-signal benchmark contract" {
+    python (Join-Path $root "tools/validate_benchmark.py") $canonicalBenchmark
+  }
+}
+
+Push-Location -LiteralPath $root
+try {
+  Invoke-Checked "full compose model" { docker compose config --quiet }
+  Invoke-Checked "evidence compose model" {
+    docker compose -f docker-compose.evidence.yml config --quiet
   }
 } finally {
   Pop-Location
