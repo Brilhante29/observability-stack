@@ -11,11 +11,11 @@ processors:
     timeout: 100ms
 
 exporters:
-  otlphttp/tempo:
+  otlp_http/tempo:
     endpoint: http://tempo:4318
     tls:
       insecure: true
-  otlphttp/loki:
+  otlp_http/loki:
     endpoint: http://loki:3100/otlp
     tls:
       insecure: true
@@ -36,8 +36,8 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp/tempo, file/traces]
+      exporters: [otlp_http/tempo, file/traces]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp/loki, file/logs]
+      exporters: [otlp_http/loki, file/logs]

@@ -1,0 +1,86 @@
+{
+  "schema_version": 2,
+  "run_id": "5a55ecdd-bd63-4d84-a041-c022573956ee",
+  "project": "observability-stack",
+  "benchmark_id": "correlated-incident-signals",
+  "workload": {
+    "version": "2.0.0",
+    "fixture_digest": "sha256:6865260288e1c045d8cc96e2eab66b74806539a993a3238de7b796e573ecebda",
+    "config_digest": "sha256:0a52ae6ee2c47001082bd0e81bba8447fbebb2e63fe7c1cfec74d2095399f9d9",
+    "warmup_iterations": 1,
+    "measured_iterations": 3,
+    "concurrency": 1
+  },
+  "metrics": [
+    {
+      "name": "incident_recovery_seconds",
+      "value": 0.13358750000043074,
+      "unit": "seconds",
+      "direction": "lower_is_better",
+      "samples": [
+        0.13969234499927552,
+        0.13358750000043074,
+        0.12501414000143996
+      ],
+      "failures": 0,
+      "summary": {
+        "min": 0.12501414000143996,
+        "median": 0.13358750000043074,
+        "max": 0.13969234499927552
+      }
+    },
+    {
+      "name": "incident_detection_seconds",
+      "value": 0.07115667899961409,
+      "unit": "seconds",
+      "direction": "lower_is_better",
+      "samples": [
+        0.07115667899961409,
+        0.07146114700117323,
+        0.06471447700096178
+      ],
+      "failures": 0,
+      "summary": {
+        "median": 0.07115667899961409
+      }
+    },
+    {
+      "name": "signal_correlation_rate",
+      "value": 1.0,
+      "unit": "ratio",
+      "direction": "target",
+      "samples": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "failures": 0,
+      "summary": {
+        "target": 1.0,
+        "signals_per_run": 3
+      }
+    }
+  ],
+  "execution": {
+    "command": "docker compose -f docker-compose.evidence.yml up --abort-on-container-exit --exit-code-from benchmark",
+    "started_at": "2026-08-21T03:44:54.197860Z",
+    "duration_seconds": 11.970719,
+    "exit_code": 0,
+    "repeat": 3
+  },
+  "environment": {
+    "runtime": "python-3.12.13",
+    "architecture": "amd64",
+    "hardware_class": "docker-local"
+  },
+  "provenance": {
+    "source_commit": "2b289f4554d5f976f45d0126816d93490811f34d",
+    "clean_tree": true,
+    "image_ref": "observability-stack:local@sha256:a28b8b6e2f27aa4ed1d06c905bf59dc1448704b834c68bfffe590fd1c52b25a6",
+    "image_digest": "sha256:a28b8b6e2f27aa4ed1d06c905bf59dc1448704b834c68bfffe590fd1c52b25a6",
+    "dependency_lock_digest": "sha256:65d0981433c2eb15459a97bd9fbe3bb40c5f74cfda66b646b5f95f16ca69a0e9",
+    "producer": "local",
+    "artifact_digest": "sha256:c8e3f06436b35dbdc7e7e93dacfe014d823d186a164a76586ad6eb75117f5edc"
+  },
+  "comparability_key": "correlated-incident-signals:2.0.0:runs-3:signals-3:delay-0.05-0.05:python-3.12.13"
+}

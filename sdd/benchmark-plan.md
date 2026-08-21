@@ -37,3 +37,6 @@ The harness then requires:
 
 The delays are real waits and the measurements are real server monotonic time.
 The benchmark proves local instrumentation integrity, not production MTTR.
+
+Canonical V1 result: recovery median `0.1336 s`, detection median `0.0712 s`,
+and `signal_correlation_rate = 1.0` over three measured incidents.

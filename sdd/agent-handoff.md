@@ -20,24 +20,25 @@ Project: `25 - observability-stack`
 
 ## Validation state
 
-- Passed: 16 unit/contract tests, Ruff, 91% coverage, two Compose model parses,
-  `git diff --check` and application image build.
-- Pending: create the clean source commit, run the V2 producer, publish and
-  verify exact-head GitHub CI.
-- Block cause: privileged-command quota until 2026-08-21 00:36 -03:00, not a
-  repository defect.
+- Passed: 16 unit/contract tests, Ruff, strict mypy over 11 files, 91% coverage,
+  two Compose model parses, `git diff --check`, application image build and V1/V2
+  evidence validation.
+- Full profile passed: all five endpoints healthy, Prometheus target `up`, three
+  Grafana datasources plus dashboard provisioned, trace retrievable from Tempo,
+  and all three lifecycle events retrievable from Loki.
+- Tempo 3.0 removed legacy `ingester` and `compactor` blocks; the committed
+  configuration follows the monolithic migration contract.
+- Pending: publish this exact head, verify GitHub CI and promote the reusable
+  observability contract and skill into `portfolio-reuse-kit`.
 
 ## Next exact commands
 
 ```powershell
 git add --all
-git commit -m "feat: correlate incident metrics traces and logs"
-python tools/benchmark_v2.py
-python tools/validate_benchmark.py benchmarks/results/observability-stack-v1.json
-python tools/validate-publication.py
+git commit -m "docs: publish correlated observability evidence"
+git push origin HEAD:main
+gh run list --repo Brilhante29/observability-stack --commit <sha>
 ```
 
-After those pass, replace the README benchmark headline with the measured median,
-set `status: published`, complete OpenSpec/release gates, commit V1/V2, push,
-verify exact-head CI and promote the reusable observability contract/skill into
-`portfolio-reuse-kit`.
+After exact-head CI passes, complete the final OpenSpec task and promote the
+reusable observability contract/skill into `portfolio-reuse-kit`.

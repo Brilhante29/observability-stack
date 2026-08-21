@@ -102,26 +102,28 @@ def create_app(otlp_endpoint: str | None = None) -> FastAPI:
     async def set_failure(request: FailureRequest, http_request: Request) -> dict[str, object]:
         correlation_id = http_request.headers.get("X-Correlation-ID", request.incident_id or "")
         if request.enabled:
-            incident = service.start_failure(request.incident_id or str(uuid4()), request.reason)
+            active_incident = service.start_failure(
+                request.incident_id or str(uuid4()), request.reason
+            )
             trace_id = telemetry.lifecycle_event(
                 "opened",
-                incident.incident_id,
-                incident.reason,
-                correlation_id or incident.incident_id,
+                active_incident.incident_id,
+                active_incident.reason,
+                correlation_id or active_incident.incident_id,
             )
-            metrics.record_event("opened", incident.incident_id, trace_id)
+            metrics.record_event("opened", active_incident.incident_id, trace_id)
             metrics.active_incident.set(1)
             return {"active": True, "incident": service.status()["incident"]}
 
-        incident = service.recover_failure()
-        if incident is not None:
+        recovered_incident = service.recover_failure()
+        if recovered_incident is not None:
             trace_id = telemetry.lifecycle_event(
                 "recovered",
-                incident.incident_id,
-                incident.reason,
-                correlation_id or incident.incident_id,
+                recovered_incident.incident_id,
+                recovered_incident.reason,
+                correlation_id or recovered_incident.incident_id,
             )
-            metrics.record_event("recovered", incident.incident_id, trace_id)
+            metrics.record_event("recovered", recovered_incident.incident_id, trace_id)
         metrics.active_incident.set(0)
         return {"active": False, "incident": service.status()["incident"]}
 

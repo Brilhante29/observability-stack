@@ -6,5 +6,5 @@
 - [x] Add evidence and full exploration Compose profiles with immutable images.
 - [x] Add fail-closed benchmark validator, tests, coverage and reusable CI.
 - [x] Align README, SDD, OpenSpec and portfolio macro.
-- [ ] Execute evidence Compose and version the measured V1 result.
+- [x] Execute evidence Compose and version the measured V1 result.
 - [ ] Publish exact head, verify GitHub CI and promote the kit delta.

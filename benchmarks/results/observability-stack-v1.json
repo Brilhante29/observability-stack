@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "project": "25-observability-stack",
+  "metric": "incident_recovery_seconds",
+  "value": 0.13358750000043074,
+  "unit": "seconds",
+  "timestamp": "2026-08-21T03:45:04.140520Z",
+  "command": "python -m observability_stack.benchmark --base-url http://app:8000 --traces /evidence/traces.json --logs /evidence/logs.json --output /output/observability-stack-v1.json",
+  "repeat": 3,
+  "samples": [
+    0.13969234499927552,
+    0.13358750000043074,
+    0.12501414000143996
+  ],
+  "summary": {
+    "median_recovery_seconds": 0.13358750000043074,
+    "median_detection_seconds": 0.07115667899961409,
+    "signal_correlation_rate": 1.0,
+    "signal_count": 3
+  },
+  "method": "Drive a real HTTP 200->503->200 incident lifecycle and reject each run unless its incident ID and trace IDs occur in metrics, traces and logs.",
+  "fixture": {
+    "reason": "dependency_timeout",
+    "incidents": 3,
+    "detection_delay_seconds": 0.05,
+    "recovery_delay_seconds": 0.05
+  },
+  "image": "observability-stack:local",
+  "metrics": {
+    "incident_detection_seconds": [
+      0.07115667899961409,
+      0.07146114700117323,
+      0.06471447700096178
+    ],
+    "incident_recovery_seconds": [
+      0.13969234499927552,
+      0.13358750000043074,
+      0.12501414000143996
+    ],
+    "signal_correlation_rate": 1.0
+  },
+  "environment": {
+    "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "python": "3.12.13",
+    "runtime": "HTTP lifecycle with OpenTelemetry Collector file evidence"
+  },
+  "runs": [
+    {
+      "incident_id": "incident-93238827-2e79-49ba-a836-6c854cc918f2",
+      "detection_seconds": 0.07115667899961409,
+      "recovery_seconds": 0.13969234499927552,
+      "trace_ids": [
+        "a24b4f3ccd153d4871e4ec028c98746d",
+        "c6579793472fc65f70cee4c98093aed2",
+        "e3030c1f3215bc991d7519c9a4f26b83"
+      ],
+      "signals": {
+        "metrics": true,
+        "traces": true,
+        "logs": true
+      }
+    },
+    {
+      "incident_id": "incident-efd0eca5-baf7-4931-8887-735d97c46d12",
+      "detection_seconds": 0.07146114700117323,
+      "recovery_seconds": 0.13358750000043074,
+      "trace_ids": [
+        "905622345d2ace08ed29fbccaf3c57b5",
+        "aa4c8d7c0e22126ce85dd6e95dd06bf5",
+        "b25c179451e8501c9e3f1580ce3f9fa0"
+      ],
+      "signals": {
+        "metrics": true,
+        "traces": true,
+        "logs": true
+      }
+    },
+    {
+      "incident_id": "incident-6a4ab6d9-c1d3-4b3b-9aad-042b25c52dd4",
+      "detection_seconds": 0.06471447700096178,
+      "recovery_seconds": 0.12501414000143996,
+      "trace_ids": [
+        "034ddc47cb2ad8868c1554ace0d04827",
+        "2782f524ca30b84e47d32a3aa5f39421",
+        "57057cd468299bdaeb893cc5336bbfcc"
+      ],
+      "signals": {
+        "metrics": true,
+        "traces": true,
+        "logs": true
+      }
+    }
+  ]
+}

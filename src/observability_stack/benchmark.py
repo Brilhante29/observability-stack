@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 from uuid import uuid4
 
 import httpx
@@ -65,7 +65,7 @@ class FileSignalProbe:
 
 
 def _trace_id(response: Any) -> str:
-    trace_id = response.headers.get("X-Trace-ID", "")
+    trace_id = str(response.headers.get("X-Trace-ID", ""))
     if len(trace_id) != 32:
         raise RuntimeError("response did not expose a valid X-Trace-ID")
     return trace_id
@@ -145,8 +145,7 @@ def run_benchmark(
     if repetitions < 1:
         raise ValueError("repetitions must be positive")
     owned_client = httpx.Client(base_url=base_url, timeout=10.0) if client is None else None
-    active_client = owned_client or client
-    assert active_client is not None
+    active_client = cast(HttpClient, owned_client or client)
     signal_probe = probe or StaticSignalProbe()
     try:
         active_client.get("/healthz").raise_for_status()

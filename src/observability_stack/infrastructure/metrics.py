@@ -54,4 +54,5 @@ class Metrics:
         )
 
     def exposition(self) -> tuple[bytes, str]:
-        return generate_latest(self.registry), CONTENT_TYPE_LATEST
+        payload = generate_latest(self.registry)  # type: ignore[no-untyped-call]
+        return payload, CONTENT_TYPE_LATEST

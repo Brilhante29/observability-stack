@@ -6,7 +6,7 @@ program:
   shared_assets:
     - "Contrato de benchmark JSON do portfolio"
     - "Skill de workflow reutilizavel e CI por perfil"
-status: benchmarked
+status: published
 claim: observabilidade ponta a ponta com correlacao de tres sinais
 stack:
   - python-3.12
@@ -130,3 +130,6 @@ release:
   no_secret_default_path: true
   readme_has_number: true
   references_documented: true
+  evidence_source_commit: 2b289f4554d5f976f45d0126816d93490811f34d
+  evidence_image_digest: sha256:a28b8b6e2f27aa4ed1d06c905bf59dc1448704b834c68bfffe590fd1c52b25a6
+  evidence_image_size_bytes: 144984285

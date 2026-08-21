@@ -2,9 +2,8 @@
 
 **Prova:** um incidente HTTP real e encontrado pelo mesmo `incident_id` em metricas, traces e logs.
 
-**Benchmark reproduzivel:** `3/3` sinais obrigatorios por execucao, com
-`signal_correlation_rate = 1.0`; a latencia primaria e
-`incident_recovery_seconds` e vem do relogio monotonic da API.
+**Benchmark reproduzivel:** `incident_recovery_seconds = 0.1336 s` (mediana),
+com `signal_correlation_rate = 1.0` em `3/3` execucoes.
 
 O harness executa `200 -> 503 -> 200`, repete tres vezes e falha se um
 `incident_id` ou qualquer trace de ciclo de vida desaparecer de um sinal.
@@ -98,6 +97,9 @@ O JSON registra as tres amostras, deteccao, recuperacao, IDs de incidente, tres
 trace IDs de ciclo de vida por execucao, ambiente, comando e presenca em cada
 sinal. Menor `incident_recovery_seconds` e melhor; `signal_correlation_rate`
 precisa ser exatamente `1.0`.
+
+Resultado canonico: recuperacao mediana de `0.1336 s`, deteccao mediana de
+`0.0712 s` e nenhuma falha de correlacao em nove verificacoes de sinal.
 
 Os atrasos de 50 ms entre abrir, detectar e recuperar sao esperas reais do
 harness, nao avancos de relogio logico. O resultado demonstra integridade de
