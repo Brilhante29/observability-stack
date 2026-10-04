@@ -2,12 +2,12 @@ id: 25
 name: observability-stack
 program:
   id: delivery-observability-infra
-  narrative_fit: "Prova um incidente local correlacionado em metricas, traces e logs, com dashboard e benchmark fail-closed."
+  narrative_fit: "Proves one local incident correlated across metrics, traces, and logs, with a dashboard and a fail-closed benchmark."
   shared_assets:
-    - "Contrato de benchmark JSON do portfolio"
-    - "Skill de workflow reutilizavel e CI por perfil"
+    - "Portfolio benchmark JSON contract"
+    - "Reusable workflow skill and per-profile CI"
 status: published
-claim: observabilidade ponta a ponta com correlacao de tres sinais
+claim: end-to-end observability with three-signal correlation
 stack:
   - python-3.12
   - fastapi
@@ -21,7 +21,7 @@ stack:
 language_profile:
   primary: fastapi-backend
   secondary: []
-  reason: "FastAPI mantem o workload pequeno; OpenTelemetry padroniza traces e logs sem acoplar o dominio a um backend."
+  reason: "FastAPI keeps the workload small; OpenTelemetry standardizes traces and logs without coupling the domain to a backend."
 decision_brain:
   agentic_spec:
     source: .portfolio/decision-brain/agentic-spec-governance.yaml
@@ -43,13 +43,13 @@ decision_brain:
     review_path: sdd/reuse-improvement-review.md
     current_status: recorded
   principles:
-    coupling_rule: "Dominio e casos de uso nao importam FastAPI, OpenTelemetry, Prometheus, storage, broker ou cloud SDK."
+    coupling_rule: "Domain and use cases import neither FastAPI, OpenTelemetry, Prometheus, storage, a broker, nor a cloud SDK."
     solid: [srp, ocp, lsp, isp, dip]
-    simplicity_rule: "Usar um monolito modular e adicionar apenas backends que provam metricas, traces, logs e navegacao entre sinais."
-    testability_rule: "ObservationService recebe IncidentStore e Clock; telemetria e composta no adapter HTTP."
+    simplicity_rule: "Use a modular monolith and add only the backends that prove metrics, traces, logs, and navigation between signals."
+    testability_rule: "ObservationService receives IncidentStore and Clock; telemetry is composed in the HTTP adapter."
     rejected_overengineering:
-      - "Microservicos e broker foram rejeitados porque nao ha fan-out, fila ou deploy independente."
-      - "Banco foi rejeitado porque persistencia nao participa do claim."
+      - "Microservices and a broker were rejected because there is no fan-out, queue, or independent deployment."
+      - "A database was rejected because persistence is not part of the claim."
   stack_profile: fastapi-backend
   api_style: rest-http
   messaging: none
@@ -58,22 +58,22 @@ decision_brain:
     local_provider: docker-compose
     real_provider_target: pluggable-otlp-backend
     emulated_services: []
-    adapter_rule: "A aplicacao fala OTLP; Collector e backends podem ser trocados sem mudar dominio ou casos de uso."
+    adapter_rule: "The application speaks OTLP; the Collector and backends can be swapped without changing the domain or use cases."
     config_switch: OTEL_EXPORTER_OTLP_ENDPOINT
     unsupported_behaviors:
-      - "Nenhuma paridade com SLO, retencao ou alta disponibilidade de producao e alegada."
+      - "No parity with production SLOs, retention, or high availability is claimed."
   database: none
-  runtime: "Python 3.12.13 sem root; Compose fixa imagens por tag e digest."
-  library_policy: "Dependencias Python diretas sao fixadas; integracoes externas usam OTLP e configuracao, nao imports no dominio."
+  runtime: "Python 3.12.13 without root; Compose pins images by tag and digest."
+  library_policy: "Direct Python dependencies are pinned; external integrations use OTLP and configuration, not imports in the domain."
   record_path: sdd/technical-decision.md
   rejected_options:
-    - option: "Apenas Prometheus e Grafana"
-      reason: "Nao provaria correlacao entre metricas, traces e logs."
-    - option: "Kafka ou RabbitMQ"
-      reason: "Nao existe requisito de mensageria neste fluxo sincrono."
+    - option: "Prometheus and Grafana only"
+      reason: "It would not prove correlation across metrics, traces, and logs."
+    - option: "Kafka or RabbitMQ"
+      reason: "There is no messaging requirement in this synchronous flow."
 architecture:
   style: hexagonal-modular-monolith
-  reason: "O incidente e um unico dominio pequeno; portas isolam estado e tempo, enquanto HTTP e telemetria ficam nos adapters."
+  reason: "The incident is one small domain; ports isolate state and time, while HTTP and telemetry stay in the adapters."
   problem_forces:
     domain_complexity: low
     integration_pressure: high
@@ -82,18 +82,18 @@ architecture:
     auditability: high
     throughput_or_async: low
     independent_deployability: low
-  dependency_rule: "Dependencias apontam para dentro; backends observaveis recebem sinais por OTLP ou scrape."
+  dependency_rule: "Dependencies point inward; observability backends receive signals through OTLP or scraping."
   boundaries:
-    - "domain.py: identidade, invariantes e transicoes imutaveis"
-    - "application.py: casos de uso sobre IncidentStore e Clock"
-    - "infrastructure: store, metricas e telemetria"
-    - "api.py: composicao HTTP e correlacao"
-    - "benchmark.py: consumidor externo fail-closed"
+    - "domain.py: identity, invariants, and immutable transitions"
+    - "application.py: use cases over IncidentStore and Clock"
+    - "infrastructure: store, metrics, and telemetry"
+    - "api.py: HTTP composition and correlation"
+    - "benchmark.py: fail-closed external consumer"
   rejected_alternatives:
     - style: microservices
-      reason: "Distribuicao adicionaria falhas sem aumentar a evidencia dos sinais."
+      reason: "Distribution would add failures without increasing the signal evidence."
     - style: event-driven
-      reason: "Nao ha processamento assincrono ou fan-out."
+      reason: "There is no asynchronous processing or fan-out."
 design_system:
   tokens: .portfolio/design-system/tokens.yaml
   readme_components:
