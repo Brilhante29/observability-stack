@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY constraints.lock requirements.txt ./
-RUN pip install --no-cache-dir --disable-pip-version-check --requirement requirements.txt \
+RUN pip install --no-cache-dir --disable-pip-version-check --constraint constraints.lock --requirement requirements.txt \
     && addgroup --system --gid 10001 app \
     && adduser --system --uid 10001 --gid 10001 --home /nonexistent --no-create-home app
 
